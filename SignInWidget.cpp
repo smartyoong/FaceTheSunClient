@@ -24,7 +24,14 @@ void USignInWidget::OnSignInButtonClicked()
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
 	bIsSamePassword = ET_Password->GetText().ToString().Equals(ET_PasswordVerify->GetText().ToString());
 	if (bIsSamePassword && bIsUniqueID)
-		T_Ok->SetText(FText::FromString("Are you sure to sign in? Press Ok one more time"));
+	{
+		if (IsValid(LogInWidget))
+		{
+			LogWidget = Cast<ULogInWidget>(CreateWidget(GetWorld(), LogInWidget));
+			T_Ok->SetText(FText::FromString("Sign In Success"));
+			this->RemoveFromParent();
+		}
+	}
 	if(!bIsSamePassword || !bIsUniqueID)
 	{
 		if (bIsUniqueID)

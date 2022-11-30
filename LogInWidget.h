@@ -20,8 +20,9 @@ public:
 	UPROPERTY(meta = (BindWidget)) class UButton* B_LogIn; // 로그인 버튼
 	UPROPERTY(meta = (BindWidget)) class UButton* B_SignIn; //회원가입 버튼
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 효과음
-	//UPROPERTY(EditDefaultsOnly) TSubclassOf<class USignInWidget>UI_Sign; // 회원가입 블루프린트
-	//UPROPERTY() class USignInWidget* signIn; // 회원가입  UI 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
+	UPROPERTY(EditDefaultsOnly) TSubclassOf<class USignInWidget>UI_Sign; // 회원가입 블루프린트
+	UPROPERTY() class USignInWidget* signIn; // 회원가입  UI 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
+	FSocket* Socket;
 
 public:
 	UFUNCTION(BlueprintCallable) void OnLogInButtonClicked();

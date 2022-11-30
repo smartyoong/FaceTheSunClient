@@ -21,9 +21,9 @@ public:
 	UPROPERTY(meta = (BindWidget)) class UEditableText* ET_Password; // 비번
 	UPROPERTY(meta = (BindWidget)) class UEditableText* ET_PasswordVerify; // 비번확인
 	UPROPERTY(meta = (BindWidget)) class UTextBlock* T_Ok; // 결과 확인용
-	//UPROPERTY(EditDefaultsOnly) TSubclassOf<class ULogInWidget> UI_LogIn; // 회원가입 완료후 로그인 위젯으로 돌아가기 위한 블루프린트
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 소리
-	//UPROPERTY() class ULogInWidget* LogIn; //로그인 위젯 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
+	UPROPERTY(EditDefaultsOnly, Category = LogInUI) TSubclassOf<class UUserWidget> LogInWidget; //로그인 위젯 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
+	UPROPERTY() class ULogInWidget* LogWidget;
 public:
 	UFUNCTION(BlueprintCallable) void OnIDCheckButtonClicked();
 	UFUNCTION(BlueprintCallable) void OnSignInButtonClicked();
