@@ -6,11 +6,6 @@
 #include "Components/Button.h"
 #include "Components/EditableText.h"
 #include "Kismet/GameplayStatics.h"
-#include "Engine.h"
-#include "NetWorking.h"
-#include "Sockets.h"
-#include "SocketSubsystem.h"
-#include "Interfaces/IPv4/IPv4Address.h"
 
 void ULogInWidget::OnLogInButtonClicked() // 로그인 시도
 {
@@ -45,23 +40,5 @@ void ULogInWidget::NativeOnInitialized()
 	if (B_SignIn)
 	{
 		B_SignIn->OnClicked.AddDynamic(this, &ULogInWidget::OnSignInButtonClicked);
-	}
-	Socket = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateSocket(TEXT("Stream"), TEXT("Client Socket"));
-	FString address = TEXT("124.54.76.95");
-	FIPv4Address ip;
-	FIPv4Address::Parse(address, ip);
-	int32 port = 18891;
-	TSharedRef<FInternetAddr> addr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
-	addr->SetIp(ip.Value);
-	addr->SetPort(port);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Trying to connect.")));
-	bool isConnected = Socket->Connect(*addr);
-	if (isConnected)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Success")));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Fail To Connect")));
 	}
 }
