@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "FaceTheSunInstance.h"
 #include "FaceTheSunGameMode.generated.h"
 
 UCLASS(minimalapi)
@@ -13,6 +14,7 @@ class AFaceTheSunGameMode : public AGameModeBase
 
 public:
 	AFaceTheSunGameMode();
+	OnlineSocket NetWorkSocket;
 };
 
 

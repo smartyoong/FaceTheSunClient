@@ -22,7 +22,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 효과음
 	UPROPERTY(EditDefaultsOnly) TSubclassOf<class USignInWidget>UI_Sign; // 회원가입 블루프린트
 	UPROPERTY() class USignInWidget* signIn; // 회원가입  UI 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
-	FSocket* Socket;
+	class AFaceTheSunGameMode* FaceTheSunMode;
 
 public:
 	UFUNCTION(BlueprintCallable) void OnLogInButtonClicked();

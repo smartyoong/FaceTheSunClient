@@ -5,14 +5,19 @@
 
 OnlineSocket::OnlineSocket()
 {
-	WSADATA wsa;
-	if(WSAStartup(MAKEWORD(2, 2), &wsa)!=0)
-		exit(EXIT_FAILURE);
+	
 }
 
 OnlineSocket::~OnlineSocket()
 {
 	WSACleanup();
+}
+
+void OnlineSocket::Init()
+{
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		exit(EXIT_FAILURE);
 }
 
 void OnlineSocket::Connect()
@@ -27,13 +32,15 @@ void OnlineSocket::Connect()
 		exit(EXIT_FAILURE);
 }
 
-void OnlineSocket::Send(char* buf)
+int OnlineSocket::Send(PackToBuffer* buf)
 {
-
+	int ret = send(sock, buf->GetBuffer(), buf->GetBufferSize(), 0);
+	return ret;
 }
-void OnlineSocket::Recv(char* buf)
+int OnlineSocket::Recv(PackToBuffer* buf)
 {
-
+	int ret = recv(sock,const_cast<char*>(buf->GetBuffer()), buf->GetBufferSize(), 0);
+	return ret;
 }
 void OnlineSocket::Close()
 {

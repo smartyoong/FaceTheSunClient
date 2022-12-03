@@ -16,7 +16,7 @@
 /**
  * 
  */
-enum class PacketID : int32 // 패킷 처리 헤더
+enum PacketID : int // 패킷 처리 헤더
 {
 	TryLogIn,
 	LogInResult,
@@ -33,21 +33,6 @@ enum class PacketID : int32 // 패킷 처리 헤더
 	RecvGameResult
 };
 
-class FACETHESUN_API OnlineSocket
-{
-public:
-	OnlineSocket();
-	~OnlineSocket();
-	void Connect();
-	void Send(char* buf);
-	void Recv(char* buf);
-	void Close();
-private:
-	SOCKET sock;
-	SOCKADDR_IN addr; //TEXT("124.54.76.95");
-	int port = 18891;
-	char buffer[4096];
-};
 
 class PackToBuffer
 {
@@ -180,3 +165,20 @@ inline void PackToBuffer::READ(T* pData)
 		m_ReadPtr += dataSize;
 	}
 }
+
+class FACETHESUN_API OnlineSocket
+{
+public:
+	OnlineSocket();
+	~OnlineSocket();
+	void Connect();
+	int Send(PackToBuffer* buf);
+	int Recv(PackToBuffer* buf);
+	void Close();
+	void Init();
+private:
+	SOCKET sock;
+	SOCKADDR_IN addr; //TEXT("124.54.76.95");
+	int port = 18891;
+	char buffer[4096];
+};
