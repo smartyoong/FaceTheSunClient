@@ -30,7 +30,11 @@ enum PacketID : int // 패킷 처리 헤더
 	SellItem,
 	GameStart,
 	SendGameResult,
-	RecvGameResult
+	RecvGameResult,
+	TrySignIn,
+	SignInResult,
+	TryID,
+	IDResult 
 };
 
 
