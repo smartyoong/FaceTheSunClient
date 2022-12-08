@@ -17,10 +17,12 @@ void ALogInLevelSetting::BeginPlay()
 {
 	Super::BeginPlay();
 	UGameplayStatics::PlaySound2D(GetWorld(), LogAndSignInMusic);
-	/*if (logIn != nullptr)
+	/*
+	if (logIn != nullptr)
 	{
 		logIn->AddToViewport();
-	}*/
+	}
+	*/
 	auto pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	pc->bShowMouseCursor = true;
 }

@@ -15,10 +15,9 @@ void ULogInWidget::OnLogInButtonClicked() // 로그인 시도
 	auto ptext = ET_Password->GetText();
 	std::string s = TCHAR_TO_ANSI(*text.ToString());
 	std::string ss = TCHAR_TO_ANSI(*ptext.ToString());
-	PackToBuffer pb(sizeof(s)+sizeof(ss)); // 로그인 전송용
+	PackToBuffer pb(sizeof(s)+sizeof(ss)+sizeof(PacketID::TryLogIn)); // 로그인 전송용
 	pb << PacketID::TryLogIn << s << ss;
 	FaceTheSunMode->NetWorkSocket.Send(&pb);
-	auto Sock = Cast<UFaceTheSunInstance>(GetGameInstance());
 	int IsLoginOrder = 0;
 	int LoginResult = 0;
 	FaceTheSunMode->NetWorkSocket.Recv(&pb);
