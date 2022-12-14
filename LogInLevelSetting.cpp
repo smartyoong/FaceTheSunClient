@@ -11,18 +11,16 @@ ALogInLevelSetting::ALogInLevelSetting()
 	ConstructorHelpers::FObjectFinder<USoundBase>LogSignSoundTemp(TEXT("/Script/Engine.SoundWave'/Game/LogInMain/Sound/LogInSignIn.LogInSignIn'"));
 	if (LogSignSoundTemp.Succeeded())
 		LogAndSignInMusic = LogSignSoundTemp.Object;
-	//logIn = Cast<ULogInWidget>(CreateWidget<ULogInWidget>(GetWorld(), UI_LogIn));
 }
 void ALogInLevelSetting::BeginPlay()
 {
 	Super::BeginPlay();
 	UGameplayStatics::PlaySound2D(GetWorld(), LogAndSignInMusic);
-	/*
+	logIn = Cast<ULogInWidget>(CreateWidget<ULogInWidget>(GetWorld(), UI_LogIn));
 	if (logIn != nullptr)
 	{
 		logIn->AddToViewport();
+		auto pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		pc->bShowMouseCursor = true;
 	}
-	*/
-	auto pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	pc->bShowMouseCursor = true;
 }

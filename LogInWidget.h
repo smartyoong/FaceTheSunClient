@@ -28,4 +28,5 @@ public:
 	UFUNCTION(BlueprintCallable) void OnLogInButtonClicked();
 	UFUNCTION(BlueprintCallable) void OnSignInButtonClicked();
 	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
 };

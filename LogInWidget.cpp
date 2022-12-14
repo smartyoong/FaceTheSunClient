@@ -28,7 +28,7 @@ void ULogInWidget::OnLogInButtonClicked() // 로그인 시도
 		if (LoginResult)
 		{
 			this->RemoveFromParent();
-			UGameplayStatics::OpenLevel(GetWorld(), TEXT("FirstPersonMap"));
+			UGameplayStatics::OpenLevel(GetWorld(), TEXT("MainLobby"));
 			this->Destruct();
 		}
 		else
@@ -70,4 +70,9 @@ void ULogInWidget::NativeOnInitialized()
 	FaceTheSunMode = Cast<AFaceTheSunGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	FaceTheSunMode ->NetWorkSocket.Init();
 	FaceTheSunMode ->NetWorkSocket.Connect();
+}
+
+void ULogInWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
 }

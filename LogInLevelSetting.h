@@ -21,6 +21,6 @@ public:
 
 public:
 	USoundBase* LogAndSignInMusic; // bgm
-	//UPROPERTY(EditDefaultsOnly) TSubclassOf<class ULogInWidget>UI_LogIn; // 로그인 블루프린트
-	//UPROPERTY() class ULogInWidget* logIn; // 로그인 객체 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
+	UPROPERTY(EditDefaultsOnly) TSubclassOf<class ULogInWidget>UI_LogIn; // 로그인 블루프린트
+	UPROPERTY() class ULogInWidget* logIn; // 로그인 객체 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
 };
