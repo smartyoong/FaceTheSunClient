@@ -17,3 +17,13 @@ OnlineSocket UFaceTheSunInstance::GetSock()
 {
 	return sock;
 }
+
+void UFaceTheSunInstance::SetCharacterName(FText Name)
+{
+	ID = Name;
+}
+
+FText UFaceTheSunInstance::GetCharacterName()
+{
+	return ID;
+}

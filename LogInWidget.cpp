@@ -7,6 +7,7 @@
 #include "Components/EditableText.h"
 #include "Kismet/GameplayStatics.h"
 #include "FaceTheSunGameMode.h"
+#include "FaceTheSunInstance.h"
 
 void ULogInWidget::OnLogInButtonClicked() // 로그인 시도
 {
@@ -27,6 +28,8 @@ void ULogInWidget::OnLogInButtonClicked() // 로그인 시도
 	{
 		if (LoginResult)
 		{
+			auto GameIns = Cast<UFaceTheSunInstance>(GetGameInstance());
+			GameIns->SetCharacterName(text);
 			this->RemoveFromParent();
 			UGameplayStatics::OpenLevel(GetWorld(), TEXT("MainLobby"));
 			this->Destruct();
