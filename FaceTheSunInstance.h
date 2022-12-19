@@ -16,12 +16,15 @@ class FACETHESUN_API UFaceTheSunInstance : public UGameInstance
 	GENERATED_BODY()
 	
 private:
-	OnlineSocket sock;
+	OnlineSocket NetWorkSocket;
 	FText ID;
+	RoomInfo info;
 public:
-	OnlineSocket GetSock();
 	void InitSock();
 	void DeleteSock();
 	void SetCharacterName(FText Name);
 	FText GetCharacterName();
+	void SetRoomInfo(RoomInfo room) { info = room; }
+	RoomInfo GetRoomInfo() { return info; }
+	OnlineSocket& GetSock() { return NetWorkSocket; }
 };

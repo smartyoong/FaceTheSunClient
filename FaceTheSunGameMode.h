@@ -14,7 +14,6 @@ class AFaceTheSunGameMode : public AGameModeBase
 
 public:
 	AFaceTheSunGameMode();
-	OnlineSocket NetWorkSocket;
 };
 
 

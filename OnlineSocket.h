@@ -201,6 +201,7 @@ public:
 	int Recv(PackToBuffer* buf);
 	void Close();
 	void Init();
+	SOCKET GetSock() { return sock; }
 private:
 	SOCKET sock;
 	SOCKADDR_IN addr; //TEXT("124.54.76.95");

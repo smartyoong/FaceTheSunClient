@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 소리
 	UPROPERTY(EditDefaultsOnly, Category = LogInUI) TSubclassOf<class UUserWidget> LogInWidget; //로그인 위젯 반드시 필수! UPROPERTY선언 안할경우 자동으로 삭제처리
 	UPROPERTY() class ULogInWidget* LogWidget; // 로그인 위젯
-	class AFaceTheSunGameMode* FaceTheSunMode; // 게임모드 (소켓용)
+	class UFaceTheSunInstance* FaceTheSunMode; // 소켓용
 public:
 	UFUNCTION(BlueprintCallable) void OnIDCheckButtonClicked();
 	UFUNCTION(BlueprintCallable) void OnSignInButtonClicked();

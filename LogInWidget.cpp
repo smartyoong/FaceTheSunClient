@@ -18,18 +18,17 @@ void ULogInWidget::OnLogInButtonClicked() // 로그인 시도
 	std::string ss = TCHAR_TO_ANSI(*ptext.ToString());
 	PackToBuffer pb(sizeof(s)+sizeof(ss)+sizeof(PacketID::TryLogIn)); // 로그인 전송용
 	pb << PacketID::TryLogIn << s << ss;
-	FaceTheSunMode->NetWorkSocket.Send(&pb);
+	Instance->GetSock().Send(&pb);
 	int IsLoginOrder = 0;
 	int LoginResult = 0;
-	FaceTheSunMode->NetWorkSocket.Recv(&pb);
+	Instance->GetSock().Recv(&pb);
 	pb >> &IsLoginOrder >> &LoginResult;
 	UE_LOG(LogTemp, Log, TEXT("%d %d"), IsLoginOrder, LoginResult);
 	if (IsLoginOrder == 1)
 	{
 		if (LoginResult)
 		{
-			auto GameIns = Cast<UFaceTheSunInstance>(GetGameInstance());
-			GameIns->SetCharacterName(text);
+			Instance->SetCharacterName(text);
 			this->RemoveFromParent();
 			UGameplayStatics::OpenLevel(GetWorld(), TEXT("MainLobby"));
 			this->Destruct();
@@ -70,9 +69,9 @@ void ULogInWidget::NativeOnInitialized()
 	{
 		B_SignIn->OnClicked.AddDynamic(this, &ULogInWidget::OnSignInButtonClicked);
 	}
-	FaceTheSunMode = Cast<AFaceTheSunGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-	FaceTheSunMode ->NetWorkSocket.Init();
-	FaceTheSunMode ->NetWorkSocket.Connect();
+	Instance = Cast<UFaceTheSunInstance>(GetGameInstance());
+	Instance ->GetSock().Init();
+	Instance ->GetSock().Connect();
 }
 
 void ULogInWidget::NativeConstruct()

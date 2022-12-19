@@ -6,7 +6,7 @@
 #include "JoinLobbyWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Button.h"
-#include "FaceTheSunGameMode.h"
+#include "FaceTheSunInstance.h"
 
 void UMainWidget::NativeOnInitialized()
 {
@@ -19,13 +19,17 @@ void UMainWidget::NativeOnInitialized()
 	{
 		B_Join->OnClicked.AddDynamic(this, &UMainWidget::OnJoinLobbyClicked);
 	}
+	if (B_Quit)
+	{
+		B_Quit->OnClicked.AddDynamic(this, &UMainWidget::OnQuitClicked);
+	}
 	/*
 	if (B_Shop)
 	{
 		B_Shop->OnClicked.AddDynamic(this, &UMainWidget::OnShopClicked);
 	}
 	*/
-	FaceTheSunMode = Cast<AFaceTheSunGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	FaceTheSunMode = Cast<UFaceTheSunInstance>(GetGameInstance());
 	JoinLobby = Cast<UJoinLobbyWidget>(CreateWidget<UJoinLobbyWidget>(GetWorld(), UI_Join));
 	CreateLobby = Cast<UCreateLobbyWidget>(CreateWidget<UCreateLobbyWidget>(GetWorld(), UI_Create));
 }
@@ -56,4 +60,10 @@ void UMainWidget::OnCreateLobbyClicked()
 void UMainWidget::OnShopClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
+}
+
+void UMainWidget::OnQuitClicked()
+{
+	FaceTheSunMode->GetSock().Close();
+	UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, true);
 }

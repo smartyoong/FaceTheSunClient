@@ -6,16 +6,11 @@
 
 void UFaceTheSunInstance::InitSock()
 {
-	sock.Init();
+	NetWorkSocket.Init();
 }
 
 void UFaceTheSunInstance::DeleteSock()
 {
-}
-
-OnlineSocket UFaceTheSunInstance::GetSock()
-{
-	return sock;
 }
 
 void UFaceTheSunInstance::SetCharacterName(FText Name)

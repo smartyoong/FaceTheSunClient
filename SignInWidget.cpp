@@ -7,7 +7,7 @@
 #include "Components/TextBlock.h"
 #include "LogInWidget.h"
 #include "Kismet/GameplayStatics.h"
-#include "FaceTheSunGameMode.h"
+#include "FaceTheSunInstance.h"
 
 void USignInWidget::OnIDCheckButtonClicked()
 {
@@ -15,9 +15,9 @@ void USignInWidget::OnIDCheckButtonClicked()
 	std::string s = TCHAR_TO_ANSI(*text.ToString());
 	PackToBuffer pb(sizeof(s)+sizeof(PacketID::TryID)); // ID확인 전송용
 	pb << PacketID::TryID << s;
-	FaceTheSunMode->NetWorkSocket.Send(&pb);
+	FaceTheSunMode->GetSock().Send(&pb);
 	int IsOrder = 0;
-	FaceTheSunMode->NetWorkSocket.Recv(&pb);
+	FaceTheSunMode->GetSock().Recv(&pb);
 	pb >> &IsOrder >> &IsUniqueID;
 	if(IsUniqueID == 0)
 	{
@@ -45,8 +45,8 @@ void USignInWidget::OnSignInButtonClicked()
 		std::string ss = TCHAR_TO_ANSI(*ptext.ToString());
 		PackToBuffer pb(sizeof(s) + sizeof(ss) + sizeof(PacketID::TryLogIn)); // 로그인 전송용
 		pb << PacketID::TrySignIn << s << ss;
-		FaceTheSunMode->NetWorkSocket.Send(&pb);
-		FaceTheSunMode->NetWorkSocket.Recv(&pb); // 어차피 클라이언트 측에서 검사를 다했기때문에 버퍼를 사용할 일은 없음
+		FaceTheSunMode->GetSock().Send(&pb);
+		FaceTheSunMode->GetSock().Recv(&pb); // 어차피 클라이언트 측에서 검사를 다했기때문에 버퍼를 사용할 일은 없음
 		int Order = 0;
 		int Result = 0;
 		pb >> &Order >> &Result;
@@ -81,5 +81,5 @@ void USignInWidget::NativeOnInitialized()
 	{
 		B_LogIn->OnClicked.AddDynamic(this, &USignInWidget::OnIDCheckButtonClicked);
 	}
-	FaceTheSunMode = Cast<AFaceTheSunGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	FaceTheSunMode = Cast<UFaceTheSunInstance>(GetGameInstance());
 }
