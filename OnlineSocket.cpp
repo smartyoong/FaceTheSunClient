@@ -176,3 +176,25 @@ void PackToBuffer::DeSerialize(RoomInfo* out)
 	DeSerialize(&out->CurrentPlayer);
 	DeSerialize(&out->CurrentUserName);
 }
+
+/*방 목록을 전송하기 위한 벡터 특수화 기본 자료형이 아니면 벡터가 에러가 나서,,,*/
+void PackToBuffer::Serialize(std::vector<RoomInfo>& in)
+{
+	size_t size = in.size();
+	WRITE(size);
+	for (int i = 0; i < size; i++) {
+		Serialize(in[i]);
+	}
+}
+
+void PackToBuffer::DeSerialize(std::vector<RoomInfo>* out)
+{
+	int size = 0;
+	READ(&size);
+
+	for (int i = 0; i < size; i++) {
+		RoomInfo data;
+		DeSerialize(&data);
+		out->push_back(data);
+	}
+}

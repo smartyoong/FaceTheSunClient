@@ -37,7 +37,10 @@ enum PacketID : int // 패킷 처리 헤더
 	IDResult = 16, // ID 중복 결과
 	AskCreateRoom = 17, // 방생성
 	CreateRoomResult = 18, // 방생성 결과 (여기서부터 리슨서버로 전환할 수 있음)
-	DeleteRoom = 19 // 방 삭제
+	DeleteRoom = 19, // 방 삭제
+	SomeBodyJoin = 20, // 누군가 방 입장시 기존 유저들에게 갱신
+	SendChat = 21, // 방에서 채팅 보내기
+	RecvChat = 22 // 누군가 보낸 채팅 받기
 };
 
 struct RoomInfo
@@ -88,6 +91,8 @@ public:
 	void DeSerialize(std::string* out);
 	void Serialize(const RoomInfo& in);
 	void DeSerialize(RoomInfo* out);
+	void Serialize(std::vector<RoomInfo>& in); // 특수화
+	void DeSerialize(std::vector<RoomInfo>* out); // 특수화
 public:
 	// operator 사용할 것인가?
 	PackToBuffer& operator << (const int& in);
