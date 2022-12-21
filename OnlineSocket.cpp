@@ -10,7 +10,6 @@ OnlineSocket::OnlineSocket()
 
 OnlineSocket::~OnlineSocket()
 {
-	WSACleanup();
 }
 
 void OnlineSocket::Init()
@@ -166,7 +165,7 @@ void PackToBuffer::Serialize(const RoomInfo& in)
 	Serialize(in.RoomName);
 	Serialize(in.HostName);
 	Serialize(in.CurrentPlayer);
-	Serialize(in.CurrentUserName);
+	Serialize(in.CanJoin);
 }
 
 void PackToBuffer::DeSerialize(RoomInfo* out)
@@ -174,7 +173,7 @@ void PackToBuffer::DeSerialize(RoomInfo* out)
 	DeSerialize(&out->RoomName);
 	DeSerialize(&out->HostName);
 	DeSerialize(&out->CurrentPlayer);
-	DeSerialize(&out->CurrentUserName);
+	DeSerialize(&out->CanJoin);
 }
 
 /*방 목록을 전송하기 위한 벡터 특수화 기본 자료형이 아니면 벡터가 에러가 나서,,,*/

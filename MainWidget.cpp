@@ -65,5 +65,6 @@ void UMainWidget::OnShopClicked()
 void UMainWidget::OnQuitClicked()
 {
 	FaceTheSunMode->GetSock().Close();
+	WSACleanup();
 	UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, true);
 }

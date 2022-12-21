@@ -39,16 +39,36 @@ void UJoinLobbyWidget::RecvLobby()
 	Instance->GetSock().Send(&pb);
 	Instance->GetSock().Recv(&pbb);
 	int IsRecvLooby;
-	pbb >> &IsRecvLooby;
+	int RecvSize;
+	pbb >> &IsRecvLooby >> &RecvSize;
+	UE_LOG(LogTemp, Log, TEXT("%d"), RecvSize);
 	if (IsRecvLooby == PacketID::SendLobby)
 	{
-		pbb.DeSerialize(&RoomList);
-	}
-	for (int i = 0; i < RoomList.size(); ++i)
-	{
-		ULoobyItemUI* LoobyItem = NewObject<ULoobyItemUI>(LobbyList);
-		LoobyItem->SetRoomName(RoomList[i]);
-		LobbyList->AddChild(LoobyItem);
+		for (int i = 0; i < RecvSize; ++i)
+		{
+			int RoomNameSize;
+			int HostNameSize;
+			pbb >> &RoomNameSize >> &HostNameSize;
+			std::string roomname;
+			std::string hostname;
+			roomname.reserve(RoomNameSize);
+			hostname.reserve(HostNameSize);
+			int currpl;
+			bool canjoin;
+			pbb.DeSerialize(&roomname);
+			pbb.DeSerialize(&hostname);
+			pbb.DeSerialize(&currpl);
+			pbb.DeSerialize(&canjoin);
+			RoomInfo ri(roomname, hostname);
+			ri.CurrentPlayer = currpl;
+			ri.CanJoin = canjoin;
+			UE_LOG(LogTemp, Log, TEXT("%s"), *FString(ri.RoomName.c_str()));
+			RoomList.push_back(ri);
+			Lobby = NewObject<ULoobyItemUI>(LobbyList);
+			/*이부분 개선 필요 지금 현재 UI가 적용이 안됨*/
+			LobbyList->AddChild(Lobby);
+			//Lobby->SetRoomName(ri);
+		}
 	}
 }
 
@@ -56,21 +76,5 @@ void UJoinLobbyWidget::OnRefreshClicked()
 {
 	LobbyList->ClearChildren();
 	RoomList.clear();
-	PackToBuffer pb(sizeof(PacketID::AskLobby)+1);
-	pb << PacketID::AskLobby;
-	PackToBuffer pbb(8192);
-	Instance->GetSock().Send(&pb);
-	Instance->GetSock().Recv(&pbb);
-	int IsRecvLooby;
-	pbb >> &IsRecvLooby;
-	if (IsRecvLooby == PacketID::SendLobby)
-	{
-		pbb.DeSerialize(&RoomList);
-	}
-	for (int i = 0; i < RoomList.size(); ++i)
-	{
-		ULoobyItemUI* LoobyItem = NewObject<ULoobyItemUI>(LobbyList);
-		LoobyItem->SetRoomName(RoomList[i]);
-		LobbyList->AddChild(LoobyItem);
-	}
+	RecvLobby();
 }

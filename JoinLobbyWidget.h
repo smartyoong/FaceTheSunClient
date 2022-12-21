@@ -21,7 +21,9 @@ private:
 	UPROPERTY(meta = (BindWidget)) class UVerticalBox* LobbyList; // 로비 목록을 포함할 수직 박스 버튼
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 효과음
 	class UFaceTheSunInstance* Instance; // socket
-	std::vector<RoomInfo> RoomList;
+	std::vector<RoomInfo> RoomList; // 방정보 받아 오기용
+	UPROPERTY(EditDefaultsOnly) TSubclassOf<class ULoobyItemUI>UI_LobbyItem; // item
+	UPROPERTY() class ULoobyItemUI* Lobby; // item pointer
 public:
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();
 	UFUNCTION(BlueprintCallable) void OnRefreshClicked();

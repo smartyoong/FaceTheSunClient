@@ -48,14 +48,12 @@ struct RoomInfo
 	std::string RoomName;
 	std::string HostName;
 	int CurrentPlayer = 1;
-	std::vector<const char*> CurrentUserName;
+	bool CanJoin = true;
 	RoomInfo() = default;
 	RoomInfo(std::string Room, std::string Host)
 	{
 		RoomName = Room;
 		HostName = Host;
-		CurrentUserName.reserve(3);
-		CurrentUserName.push_back(Host.c_str());
 	}
 };
 
