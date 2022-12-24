@@ -5,12 +5,9 @@
 #include "FaceTheSunInstance.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "RoomListItemData.h"
 #include "Kismet/GameplayStatics.h"
 
-void ULoobyItemUI::SetRoomName(struct RoomInfo info)
-{
-	TB_Room->SetText(FText::FromString(FString(info.RoomName.c_str())));
-}
 
 void ULoobyItemUI::NativeOnInitialized()
 {
@@ -21,7 +18,16 @@ void ULoobyItemUI::NativeConstruct()
 {
 	Super::NativeConstruct();
 }
-void ULoobyItemUI::OnJoinClicked()
+void ULoobyItemUI::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
-	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
+	URoomListItemData* Data = Cast<URoomListItemData>(ListItemObject);
+	if (Data)
+	{
+		TB_Room->Font.Size = 40;
+		TB_Room->SetText(FText::FromString(FString(Data->GetRoomInfo().RoomName.c_str())));
+	}
+}
+void ULoobyItemUI::NativeOnItemSelectionChanged(bool bIsSelected)
+{
+	TB_Room->SetColorAndOpacity(FSlateColor(FLinearColor(3.0f / 255.0f, 252.0f / 255.0f, 11.0f / 255.0f, 1.0f)));
 }

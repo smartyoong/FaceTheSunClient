@@ -18,7 +18,8 @@ class FACETHESUN_API UJoinLobbyWidget : public UUserWidget
 private:
 	UPROPERTY(meta = (BindWidget)) class UButton* B_GoBack; // 뒤로가기 버튼
 	UPROPERTY(meta = (BindWidget)) class UButton* B_Lobby; // 뒤로가기 버튼
-	UPROPERTY(meta = (BindWidget)) class UVerticalBox* LobbyList; // 로비 목록을 포함할 수직 박스 버튼
+	UPROPERTY(meta = (BindWidget)) class UButton* B_Join; // 뒤로가기 버튼
+	UPROPERTY(meta = (BindWidget)) class UListView* LobbyList; // 로비 목록을 포함할 수직 박스 버튼
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 효과음
 	class UFaceTheSunInstance* Instance; // socket
 	std::vector<RoomInfo> RoomList; // 방정보 받아 오기용
@@ -27,6 +28,7 @@ private:
 public:
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();
 	UFUNCTION(BlueprintCallable) void OnRefreshClicked();
+	UFUNCTION(BlueprintCallable) void OnJoinClicked();
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 	void RecvLobby();

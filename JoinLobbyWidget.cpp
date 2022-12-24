@@ -6,12 +6,15 @@
 #include "LoobyItemUI.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
+#include "Components/ListView.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
+#include "RoomListItemData.h"
 
 void UJoinLobbyWidget::OnGoBackClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
-	LobbyList->ClearChildren();
+	LobbyList->ClearListItems();
 	RoomList.clear();
 	this->RemoveFromParent();
 }
@@ -22,6 +25,8 @@ void UJoinLobbyWidget::NativeOnInitialized()
 		B_GoBack->OnClicked.AddDynamic(this, &UJoinLobbyWidget::OnGoBackClicked);
 	if (B_Lobby)
 		B_Lobby->OnClicked.AddDynamic(this, &UJoinLobbyWidget::OnRefreshClicked);
+	if (B_Join)
+		B_Join->OnClicked.AddDynamic(this, &UJoinLobbyWidget::OnJoinClicked);
 }
 
 void UJoinLobbyWidget::NativeConstruct()
@@ -41,7 +46,6 @@ void UJoinLobbyWidget::RecvLobby()
 	int IsRecvLooby;
 	int RecvSize;
 	pbb >> &IsRecvLooby >> &RecvSize;
-	UE_LOG(LogTemp, Log, TEXT("%d"), RecvSize);
 	if (IsRecvLooby == PacketID::SendLobby)
 	{
 		for (int i = 0; i < RecvSize; ++i)
@@ -62,19 +66,24 @@ void UJoinLobbyWidget::RecvLobby()
 			RoomInfo ri(roomname, hostname);
 			ri.CurrentPlayer = currpl;
 			ri.CanJoin = canjoin;
-			UE_LOG(LogTemp, Log, TEXT("%s"), *FString(ri.RoomName.c_str()));
 			RoomList.push_back(ri);
-			Lobby = NewObject<ULoobyItemUI>(LobbyList);
-			/*이부분 개선 필요 지금 현재 UI가 적용이 안됨*/
-			LobbyList->AddChild(Lobby);
-			//Lobby->SetRoomName(ri);
+			URoomListItemData* Data = NewObject<URoomListItemData>();
+			Data->SetRoomInfo(ri);
+			LobbyList->AddItem(Data);
+
 		}
 	}
 }
 
 void UJoinLobbyWidget::OnRefreshClicked()
 {
-	LobbyList->ClearChildren();
+	LobbyList->ClearListItems();
 	RoomList.clear();
 	RecvLobby();
+}
+
+void UJoinLobbyWidget::OnJoinClicked()
+{
+	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
+	auto Data =Cast<URoomListItemData>(LobbyList->GetSelectedItem());
 }
