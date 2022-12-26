@@ -56,4 +56,22 @@ void URoomWidget::NativeConstruct()
 	NewTB->Font.Size = 200;
 	NewTB->SetText(HostName);
 	VB_User->AddChild(NewTB);
+	for (int i = 1; i < Instance->MultiPlayerNames.size(); ++i)
+	{
+		UTextBlock* NNewTB = NewObject<UTextBlock>(VB_User);
+		NNewTB->Font.Size = 200;
+		NNewTB->SetText(Instance->MultiPlayerNames[i]);
+		VB_User->AddChild(NNewTB);
+	}
+	tp.SetRoomWidget(this);
+	if(tp.Init())
+		tp.Run();
+}
+
+void URoomWidget::AddNewUserName(std::string Name)
+{
+	UTextBlock* NewTB = NewObject<UTextBlock>(VB_User);
+	NewTB->Font.Size = 200;
+	NewTB->SetText(FText::FromString(FString(Name.c_str())));
+	VB_User->AddChild(NewTB);
 }

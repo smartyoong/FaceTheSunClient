@@ -10,6 +10,7 @@
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "RoomListItemData.h"
+#include "RoomWidget.h"
 
 void UJoinLobbyWidget::OnGoBackClicked()
 {
@@ -27,12 +28,13 @@ void UJoinLobbyWidget::NativeOnInitialized()
 		B_Lobby->OnClicked.AddDynamic(this, &UJoinLobbyWidget::OnRefreshClicked);
 	if (B_Join)
 		B_Join->OnClicked.AddDynamic(this, &UJoinLobbyWidget::OnJoinClicked);
+	RoomWidget = Cast<URoomWidget>(CreateWidget<URoomWidget>(GetWorld(), UI_Room));
+	Instance = Cast<UFaceTheSunInstance>(GetGameInstance());
 }
 
 void UJoinLobbyWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	Instance = Cast<UFaceTheSunInstance>(GetGameInstance());
 	RecvLobby();
 }
 
@@ -86,4 +88,38 @@ void UJoinLobbyWidget::OnJoinClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
 	auto Data =Cast<URoomListItemData>(LobbyList->GetSelectedItem());
+	PackToBuffer pb(sizeof(PacketID::AskToRoom) + sizeof(Data->GetRoomInfo().RoomName) + sizeof(TCHAR_TO_ANSI(*Instance->GetCharacterName().ToString()+sizeof(int))));
+	std::string CharacterNameString = TCHAR_TO_ANSI(*Instance->GetCharacterName().ToString());
+	pb << PacketID::AskToRoom << Data->GetRoomInfo().HostName << CharacterNameString << (int)LobbyList->GetIndexForItem(LobbyList->GetSelectedItem());;
+	Instance->GetSock().Send(&pb);
+	PackToBuffer pbb(1024);
+	Instance->GetSock().Recv(&pbb);
+	int IsRecvRoom = 0;
+	int CurrentPlayerCount = 0;
+	bool CanJoinRoom = false;
+	pbb >> &IsRecvRoom >> &CanJoinRoom >> &CurrentPlayerCount;
+	if (IsRecvRoom == PacketID::SendRoomInfo)
+	{
+		if (CanJoinRoom)
+		{
+			RoomInfo info;
+			pbb.DeSerialize(&info);
+			for (int i = 0; i < CurrentPlayerCount; ++i)
+			{
+				std::string s;
+				pbb >> &s;
+				Instance->MultiPlayerNames.push_back(FText::FromString(FString(s.c_str())));
+			}
+			Instance->SetRoomInfo(info);
+			RoomWidget->AddToViewport();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("방 입장이 불가능합니다."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("방 입장중 통신 오류 발생"));
+	}
 }

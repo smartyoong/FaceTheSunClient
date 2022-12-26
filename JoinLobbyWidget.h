@@ -25,6 +25,8 @@ private:
 	std::vector<RoomInfo> RoomList; // 방정보 받아 오기용
 	UPROPERTY(EditDefaultsOnly) TSubclassOf<class ULoobyItemUI>UI_LobbyItem; // item
 	UPROPERTY() class ULoobyItemUI* Lobby; // item pointer
+	UPROPERTY(EditDefaultsOnly) TSubclassOf<class URoomWidget>UI_Room; // 방 블루프린트
+	UPROPERTY() class URoomWidget* RoomWidget;
 public:
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();
 	UFUNCTION(BlueprintCallable) void OnRefreshClicked();

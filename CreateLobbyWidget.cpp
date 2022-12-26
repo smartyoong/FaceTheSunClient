@@ -48,5 +48,6 @@ void UCreateLobbyWidget::OnCreateClicked()
 		UE_LOG(LogTemp, Log, TEXT("%d"),WSAGetLastError());
 	}
 	Instance->SetRoomInfo(info);
+	Instance->MultiPlayerNames.push_back(Instance->GetCharacterName());
 	RoomWidget->AddToViewport();
 }

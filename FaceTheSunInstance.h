@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "OnlineSocket.h"
+#include <vector>
 #include "FaceTheSunInstance.generated.h"
 
 /**
@@ -27,4 +28,5 @@ public:
 	void SetRoomInfo(RoomInfo room) { info = room; }
 	RoomInfo GetRoomInfo() { return info; }
 	OnlineSocket& GetSock() { return NetWorkSocket; }
+	std::vector<FText> MultiPlayerNames;
 };

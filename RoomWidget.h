@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "ThreadTaskRoom.h"
 #include "RoomWidget.generated.h"
 
 /**
@@ -23,12 +24,16 @@ private:
 	UPROPERTY(meta = (BindWidget)) class UScrollBox* SB_Chat; // chat list
 	UPROPERTY(meta = (BindWidget)) class UEditableText* ET_Chat; // chat edit
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 효과음
-	UPROPERTY() class UFaceTheSunInstance* Instance; // 소켓 및 기타관리용
 	FText HostName;
+	ThreadTaskRoom tp; //스레드로 소켓 리시브
 public:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
+	void AddNewUserName(std::string Name);
 	UFUNCTION(BlueprintCallable) void OnStartClicked();
 	UFUNCTION(BlueprintCallable) void OnSendChatClicked();
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();
+	UPROPERTY() class UFaceTheSunInstance* Instance; // 소켓 및 기타관리용
 };
+
+/* new  and delete로 스레드 실행 종료*/
