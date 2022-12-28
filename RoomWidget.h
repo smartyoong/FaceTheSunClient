@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "ThreadTaskRoom.h"
+#include "FaceTheSunInstance.h"
 #include "RoomWidget.generated.h"
 
 /**
@@ -25,11 +25,13 @@ private:
 	UPROPERTY(meta = (BindWidget)) class UEditableText* ET_Chat; // chat edit
 	UPROPERTY(EditDefaultsOnly, Category = Sound) USoundBase* ClickSound; // 클릭 효과음
 	FText HostName;
-	ThreadTaskRoom tp; //스레드로 소켓 리시브
+	class ThreadTaskRoom* tp; //스레드로 소켓 리시브
 public:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
-	void AddNewUserName(std::string Name);
+	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
+	void AddNewUserName(PackToBuffer& pb);
+	void AddChat(PackToBuffer& pb);
 	UFUNCTION(BlueprintCallable) void OnStartClicked();
 	UFUNCTION(BlueprintCallable) void OnSendChatClicked();
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();

@@ -7,7 +7,7 @@
 
 void NewCommers(PackToBuffer& pb, URoomWidget* room);
 
-ThreadTaskRoom::ThreadTaskRoom()
+ThreadTaskRoom::ThreadTaskRoom(URoomWidget* r) : room(r)
 {
 	Thread = FRunnableThread::Create(this, TEXT("Room Network Thread"));
 }
@@ -16,26 +16,21 @@ ThreadTaskRoom::~ThreadTaskRoom()
 {
 	if (Thread)
 	{
-		Thread->WaitForCompletion();
 		Thread->Kill();
 		delete Thread;
 	}
 }
-void ThreadTaskRoom::SetRoomWidget(URoomWidget* r)
-{
-	room = r;
-}
 
 void NewCommers(PackToBuffer& pb, URoomWidget* room)
 {
-	std::string NewUser;
-	pb >> &NewUser;
-	room->AddNewUserName(NewUser);
+	room->Instance->OrderQue.push(pb);
+	UE_LOG(LogNet, Warning, TEXT("RunComplete"));
 }
 
 bool ThreadTaskRoom::Init()
 {
 	UE_LOG(LogNet, Warning, TEXT("Thread has been initialized"));
+	IsRun = true;
 	if (room != nullptr)
 		return true;
 	else
@@ -44,26 +39,21 @@ bool ThreadTaskRoom::Init()
 
 uint32 ThreadTaskRoom::Run()
 {
+	PackToBuffer pb(1024);
+	int err = room->Instance->GetSock().Recv(&pb);
 	while (true)
 	{
-		int KindOfRecvCode = 0;
-		PackToBuffer pb(1024);
-		room->Instance->GetSock().Recv(&pb);
-		pb >> &KindOfRecvCode;
-		if (KindOfRecvCode == PacketID::DeleteRoom)
+		if (!IsRun)
 			break;
-		switch (KindOfRecvCode)
+		if (err == SOCKET_ERROR)
 		{
-		case PacketID::SomeBodyJoin:
-			NewCommers(pb, room);
-			break;
-		case PacketID::RecvChat:
-			break;
-		case PacketID::GameStart:
-			break;
-		default:
-			break;
+			UE_LOG(LogNet, Warning, TEXT("%d"), WSAGetLastError());
 		}
+		else
+		{
+			NewCommers(pb, room);
+		}
+		err = room->Instance->GetSock().Recv(&pb);
 	}
 	return 1;
 }
@@ -71,4 +61,13 @@ uint32 ThreadTaskRoom::Run()
 void ThreadTaskRoom::Exit()
 {
 	UE_LOG(LogNet, Warning, TEXT("Finish"));
+}
+
+void ThreadTaskRoom::Stop()
+{
+	UE_LOG(LogNet, Warning, TEXT("Stop"));
+	IsRun = false;
+	PackToBuffer pb(32);
+	pb << PacketID::DeleteRoom;
+	room->Instance->GetSock().Send(&pb); // 루프 탈출용 send
 }

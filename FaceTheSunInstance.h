@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "OnlineSocket.h"
 #include <vector>
+#include <concurrent_queue.h>
 #include "FaceTheSunInstance.generated.h"
 
 /**
@@ -29,4 +30,5 @@ public:
 	RoomInfo GetRoomInfo() { return info; }
 	OnlineSocket& GetSock() { return NetWorkSocket; }
 	std::vector<FText> MultiPlayerNames;
+	Concurrency::concurrent_queue<PackToBuffer> OrderQue;
 };

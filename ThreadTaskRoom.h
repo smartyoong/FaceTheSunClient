@@ -10,15 +10,16 @@
 class FACETHESUN_API ThreadTaskRoom : public FRunnable
 {
 public:
-	ThreadTaskRoom();
+	ThreadTaskRoom(class URoomWidget* r);
 	~ThreadTaskRoom() override;
 	bool Init() override;
 	uint32 Run() override;
 	void Exit() override;
-	void SetRoomWidget(class URoomWidget* r);
+	void Stop() override;
 
 private:
 	// ¾²·¹µå
 	FRunnableThread* Thread;
 	class URoomWidget* room;
+	bool IsRun = true;
 };

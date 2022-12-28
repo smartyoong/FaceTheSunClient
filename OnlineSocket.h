@@ -40,7 +40,9 @@ enum PacketID : int // 패킷 처리 헤더
 	DeleteRoom = 19, // 방 삭제
 	SomeBodyJoin = 20, // 누군가 방 입장시 기존 유저들에게 갱신
 	SendChat = 21, // 방에서 채팅 보내기
-	RecvChat = 22 // 누군가 보낸 채팅 받기
+	RecvChat = 22, // 누군가 보낸 채팅 받기
+	DeleteRoomHost = 23, // 호스트가 나갔을 경우
+	DeleteRoomMember =24 // 멤버가 나갔을 경우
 };
 
 struct RoomInfo

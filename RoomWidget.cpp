@@ -2,13 +2,13 @@
 
 
 #include "RoomWidget.h"
-#include "FaceTheSunInstance.h"
 #include "Components/Button.h"
 #include "Components/EditableText.h"
 #include "Components/ScrollBox.h"
 #include "Components/VerticalBox.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
+#include "ThreadTaskRoom.h"
 
 void URoomWidget::OnStartClicked()
 {
@@ -19,12 +19,23 @@ void URoomWidget::OnGoBackClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
 	VB_User->ClearChildren();
+	SB_Chat->ClearChildren();
+	delete tp; // 어차피 블로킹 발생
+	Instance->MultiPlayerNames.clear();
+	Instance->OrderQue.clear();
+	//VB_User->RemoveChild(위젯);
 	this->RemoveFromParent();
 }
 
 void URoomWidget::OnSendChatClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
+	FText Chat = ET_Chat->GetText();
+	std::string ChatString = TCHAR_TO_UTF8(*Chat.ToString());
+	PackToBuffer pb(sizeof(PacketID::SendChat) + sizeof(ChatString)+sizeof(Instance->GetRoomInfo().HostName)+sizeof(TCHAR_TO_UTF8 (*Instance->GetCharacterName().ToString())));
+	std::string Character = TCHAR_TO_UTF8(*Instance->GetCharacterName().ToString());
+	pb << PacketID::SendChat << Instance->GetRoomInfo().HostName << Character <<ChatString;
+	Instance->GetSock().Send(&pb);
 }
 
 void URoomWidget::NativeOnInitialized()
@@ -63,15 +74,49 @@ void URoomWidget::NativeConstruct()
 		NNewTB->SetText(Instance->MultiPlayerNames[i]);
 		VB_User->AddChild(NNewTB);
 	}
-	tp.SetRoomWidget(this);
-	if(tp.Init())
-		tp.Run();
+	tp = new ThreadTaskRoom(this);
 }
 
-void URoomWidget::AddNewUserName(std::string Name)
+void URoomWidget::AddNewUserName(PackToBuffer& pb)
 {
+	std::string Name;
+	pb >> &Name;
 	UTextBlock* NewTB = NewObject<UTextBlock>(VB_User);
 	NewTB->Font.Size = 200;
 	NewTB->SetText(FText::FromString(FString(Name.c_str())));
 	VB_User->AddChild(NewTB);
+}
+
+void URoomWidget::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
+{
+	Super::NativeTick(Geometry, DeltaSeconds);
+	if (Instance->OrderQue.unsafe_size() > 0)
+	{
+		PackToBuffer pb(1024);
+		Instance->OrderQue.try_pop(pb);
+		int KindOfOrder;
+		pb >> &KindOfOrder;
+		switch (KindOfOrder)
+		{
+		case PacketID::SomeBodyJoin:
+			AddNewUserName(pb);
+			break;
+		case PacketID::RecvChat:
+			AddChat(pb);
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void URoomWidget::AddChat(PackToBuffer& pb)
+{
+	std::string Chat;
+	pb >> &Chat;
+	UTextBlock* NewTB = NewObject<UTextBlock>(SB_Chat);
+	NewTB->Font.Size = 30;
+	NewTB->SetText(FText::FromString(FString(Chat.c_str())));
+	SB_Chat->ScrollToEnd();
+	SB_Chat->AddChild(NewTB);
 }
