@@ -32,6 +32,8 @@ public:
 	virtual void NativeTick(const FGeometry& Geometry, float DeltaSeconds) override;
 	void AddNewUserName(PackToBuffer& pb);
 	void AddChat(PackToBuffer& pb);
+	void HostOut();
+	void MemberOut(PackToBuffer& pb);
 	UFUNCTION(BlueprintCallable) void OnStartClicked();
 	UFUNCTION(BlueprintCallable) void OnSendChatClicked();
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();

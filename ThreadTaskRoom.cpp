@@ -5,7 +5,7 @@
 #include "RoomWidget.h"
 #include "FaceTheSunInstance.h"
 
-void NewCommers(PackToBuffer& pb, URoomWidget* room);
+void NewCommers(PackToBuffer pb, URoomWidget* room);
 
 ThreadTaskRoom::ThreadTaskRoom(URoomWidget* r) : room(r)
 {
@@ -21,15 +21,13 @@ ThreadTaskRoom::~ThreadTaskRoom()
 	}
 }
 
-void NewCommers(PackToBuffer& pb, URoomWidget* room)
+void NewCommers(PackToBuffer pb, URoomWidget* room)
 {
 	room->Instance->OrderQue.push(pb);
-	UE_LOG(LogNet, Warning, TEXT("RunComplete"));
 }
 
 bool ThreadTaskRoom::Init()
 {
-	UE_LOG(LogNet, Warning, TEXT("Thread has been initialized"));
 	IsRun = true;
 	if (room != nullptr)
 		return true;
@@ -60,12 +58,11 @@ uint32 ThreadTaskRoom::Run()
 
 void ThreadTaskRoom::Exit()
 {
-	UE_LOG(LogNet, Warning, TEXT("Finish"));
+	
 }
 
 void ThreadTaskRoom::Stop()
 {
-	UE_LOG(LogNet, Warning, TEXT("Stop"));
 	IsRun = false;
 	PackToBuffer pb(32);
 	pb << PacketID::DeleteRoom;

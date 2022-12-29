@@ -18,13 +18,19 @@ void URoomWidget::OnStartClicked()
 void URoomWidget::OnGoBackClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
-	VB_User->ClearChildren();
-	SB_Chat->ClearChildren();
-	delete tp; // 어차피 블로킹 발생
-	Instance->MultiPlayerNames.clear();
-	Instance->OrderQue.clear();
-	//VB_User->RemoveChild(위젯);
-	this->RemoveFromParent();
+	std::string CharacterNameString = TCHAR_TO_UTF8(*Instance->GetCharacterName().ToString());
+	if (Instance->GetRoomInfo().HostName == CharacterNameString)
+	{
+		PackToBuffer pb(sizeof(PacketID::DeleteRoomHost) + sizeof(Instance->GetRoomInfo().HostName));
+		pb << PacketID::DeleteRoomHost << Instance->GetRoomInfo().HostName;
+		Instance->GetSock().Send(&pb);
+	}
+	else
+	{
+		PackToBuffer pb(sizeof(PacketID::DeleteRoomHost) + sizeof(Instance->GetRoomInfo().HostName)+ sizeof(CharacterNameString));
+		pb << PacketID::DeleteRoomMember << Instance->GetRoomInfo().HostName << CharacterNameString;
+		Instance->GetSock().Send(&pb);
+	}
 }
 
 void URoomWidget::OnSendChatClicked()
@@ -84,6 +90,7 @@ void URoomWidget::AddNewUserName(PackToBuffer& pb)
 	UTextBlock* NewTB = NewObject<UTextBlock>(VB_User);
 	NewTB->Font.Size = 200;
 	NewTB->SetText(FText::FromString(FString(Name.c_str())));
+	Instance->MultiPlayerNames.push_back(FText::FromString(FString(Name.c_str())));
 	VB_User->AddChild(NewTB);
 }
 
@@ -104,6 +111,12 @@ void URoomWidget::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 		case PacketID::RecvChat:
 			AddChat(pb);
 			break;
+		case PacketID::DeleteRoomHost:
+			HostOut();
+			break;
+		case PacketID::DeleteRoomMember:
+			MemberOut(pb);
+			break;
 		default:
 			break;
 		}
@@ -119,4 +132,37 @@ void URoomWidget::AddChat(PackToBuffer& pb)
 	NewTB->SetText(FText::FromString(FString(Chat.c_str())));
 	SB_Chat->ScrollToEnd();
 	SB_Chat->AddChild(NewTB);
+}
+
+void URoomWidget::HostOut()
+{
+	VB_User->ClearChildren();
+	SB_Chat->ClearChildren();
+	delete tp; // 어차피 블로킹 발생
+	Instance->MultiPlayerNames.clear();
+	Instance->OrderQue.clear();
+	this->RemoveFromParent();
+}
+void URoomWidget::MemberOut(PackToBuffer& pb)
+{
+	std::string MemberString;
+	pb >> &MemberString;
+	int index = 0;
+	for (auto a : Instance->MultiPlayerNames)
+	{
+		if (a.ToString() == FString(MemberString.c_str()))
+		{
+			Instance->MultiPlayerNames.erase(Instance->MultiPlayerNames.begin() + index);
+			break;
+		}
+		index++;
+	}
+	VB_User->ClearChildren();
+	for (int i = 0; i < Instance->MultiPlayerNames.size(); ++i)
+	{
+		UTextBlock* NewTB = NewObject<UTextBlock>(VB_User);
+		NewTB->Font.Size = 200;
+		NewTB->SetText(Instance->MultiPlayerNames[i]);
+		VB_User->AddChild(NewTB);
+	}
 }
