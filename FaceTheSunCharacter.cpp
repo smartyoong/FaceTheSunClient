@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -16,6 +17,7 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 {
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
+	PrimaryActorTick.bCanEverTick = true;
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
@@ -34,6 +36,9 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	CrouchEyeOffset = FVector(0.f);
+	CrouchSpeed = 12.f;
+	GetMesh()->SetOwnerNoSee(true);
 
 }
 
@@ -69,6 +74,12 @@ void AFaceTheSunCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Look);
+
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::StartCrouch);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopCrouch);
+
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Run);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopRun);
 	}
 }
 
@@ -99,6 +110,30 @@ void AFaceTheSunCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
+{
+	GetCharacterMovement()->MaxWalkSpeed = 1000.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 500.0f;
+	GetCharacterMovement()->MaxSwimSpeed = 200.0f;
+}
+
+void AFaceTheSunCharacter::StopRun(const FInputActionValue& Value)
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 300.0f;
+	GetCharacterMovement()->MaxSwimSpeed = 100.0f;
+}
+
+void AFaceTheSunCharacter::StartCrouch(const FInputActionValue& Value)
+{
+	Crouch();
+}
+
+void AFaceTheSunCharacter::StopCrouch(const FInputActionValue& Value)
+{
+	UnCrouch();
+}
+
 void AFaceTheSunCharacter::SetHasRifle(bool bNewHasRifle)
 {
 	bHasRifle = bNewHasRifle;
@@ -107,4 +142,44 @@ void AFaceTheSunCharacter::SetHasRifle(bool bNewHasRifle)
 bool AFaceTheSunCharacter::GetHasRifle()
 {
 	return bHasRifle;
+}
+
+void AFaceTheSunCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust)
+{
+	/*기존의 앉기는 그냥 카메를 순간이동한거라면 이 앉기 동작은 선형적으로 내려오도록 개선 */
+	if (HalfHeightAdjust == 0.f)
+	{
+		return;
+	}
+	float StartBaseEyeHeight = BaseEyeHeight;
+	Super::OnStartCrouch(HalfHeightAdjust, ScaleHalfHeightAdjust);
+	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight + HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight),false);
+}
+void AFaceTheSunCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust)
+{
+	if (HalfHeightAdjust == 0.f)
+	{
+		return;
+	}
+	float StartBaseEyeHeight = BaseEyeHeight;
+	Super::OnEndCrouch(HalfHeightAdjust, ScaleHalfHeightAdjust);
+	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight - HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight), false);
+}
+void AFaceTheSunCharacter::CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult)
+{
+	if (FirstPersonCameraComponent)
+	{
+		FirstPersonCameraComponent->GetCameraView(DeltaTime, OutResult);
+		OutResult.Location += CrouchEyeOffset;
+	}
+}
+
+void AFaceTheSunCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	// 앉기 개선을 위한 매초마다 위치 계산
+	float CrouchInterpTime = FMath::Min(1.f, CrouchSpeed * DeltaTime);
+	CrouchEyeOffset = (1.f, CrouchInterpTime) * CrouchEyeOffset;
 }

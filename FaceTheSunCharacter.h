@@ -38,6 +38,13 @@ class AFaceTheSunCharacter : public ACharacter
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
+	/** ¾É±â */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* CrouchAction;
+	/** ´Þ¸®±â */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* RunAction;
+
 
 	
 public:
@@ -71,6 +78,11 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	void Run(const FInputActionValue& Value);
+	void StopRun(const FInputActionValue& Value);
+	void StartCrouch(const FInputActionValue& Value);
+	void StopCrouch(const FInputActionValue& Value);
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -82,6 +94,13 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") FVector CrouchEyeOffset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") float CrouchSpeed;
+
+	void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
+	void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
+	void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+	void Tick(float DeltaTime) override;
 
 };
 
