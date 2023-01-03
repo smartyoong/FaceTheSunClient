@@ -14,4 +14,11 @@ class FACETHESUN_API UPlayerSciFiAnimation : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Speed") float speed = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Direction") float Direction = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Jump") bool bIsInAir = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Jump") bool bIsCrouch = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pitch") double PlayerPitch;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 };

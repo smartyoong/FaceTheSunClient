@@ -40,6 +40,13 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	CrouchSpeed = 12.f;
 	GetMesh()->SetOwnerNoSee(true);
 
+	Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
+	Gun->SetOwnerNoSee(true);
+	Gun->SetupAttachment(GetMesh());
+	Gun1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh1P"));
+	Gun1P->SetOnlyOwnerSee(true);
+	Gun1P->SetupAttachment(Mesh1P);
+
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -120,7 +127,7 @@ void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
 void AFaceTheSunCharacter::StopRun(const FInputActionValue& Value)
 {
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 300.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 100.0f;
 }
 

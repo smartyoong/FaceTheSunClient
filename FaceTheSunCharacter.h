@@ -96,6 +96,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") FVector CrouchEyeOffset;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") float CrouchSpeed;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") class USkeletalMeshComponent* Gun;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") class USkeletalMeshComponent* Gun1P;
 
 	void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
 	void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
