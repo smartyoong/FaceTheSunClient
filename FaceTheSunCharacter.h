@@ -46,6 +46,7 @@ class AFaceTheSunCharacter : public ACharacter
 	class UInputAction* RunAction;
 
 
+
 	
 public:
 	AFaceTheSunCharacter();
@@ -96,13 +97,15 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") FVector CrouchEyeOffset;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") float CrouchSpeed;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") class USkeletalMeshComponent* Gun;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") class USkeletalMeshComponent* Gun1P;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
+	class UTP_WeaponComponent* Gun;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
+	class UTP_WeaponComponent* Gun1P;
 
-	void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
-	void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
-	void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
-	void Tick(float DeltaTime) override;
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
+	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+	virtual void Tick(float DeltaTime) override;
 
 };
 

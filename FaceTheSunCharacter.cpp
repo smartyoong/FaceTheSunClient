@@ -8,6 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "TP_WeaponComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,13 +41,15 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	CrouchSpeed = 12.f;
 	GetMesh()->SetOwnerNoSee(true);
 
-	Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	Gun = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh"));
 	Gun->SetOwnerNoSee(true);
-	Gun->SetupAttachment(GetMesh());
-	Gun1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh1P"));
+	Gun->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("GripPoint")));
+	Gun1P = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh1P"));
 	Gun1P->SetOnlyOwnerSee(true);
-	Gun1P->SetupAttachment(Mesh1P);
-
+	Gun1P->AttachToComponent(Mesh1P, AttachmentRules, FName(TEXT("GripPoint")));
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+	SetHasRifle(true);
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -62,7 +65,6 @@ void AFaceTheSunCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -169,10 +171,7 @@ void AFaceTheSunCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHe
 	{
 		return;
 	}
-	float StartBaseEyeHeight = BaseEyeHeight;
 	Super::OnEndCrouch(HalfHeightAdjust, ScaleHalfHeightAdjust);
-	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight - HalfHeightAdjust;
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight), false);
 }
 void AFaceTheSunCharacter::CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult)
 {
