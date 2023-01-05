@@ -21,14 +21,15 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
 }
 
-
-void UTP_WeaponComponent::Fire()
+// fire의 스켈레탈이 각자 다르기때문에 2번 중첩으로 재생되는 효과가 존재해서 메시를 받아들이기로했다
+void UTP_WeaponComponent::Fire(USkeletalMeshComponent* mesh)
 {
 	if (Character == nullptr || Character->GetController() == nullptr)
 	{
 		return;
 	}
-
+	if (ParticleEffect)
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, this->GetSocketTransform(TEXT("Muzzle")));
 	// Try and fire a projectile
 	if (ProjectileClass != nullptr)
 	{
@@ -45,40 +46,17 @@ void UTP_WeaponComponent::Fire()
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 	
 			// Spawn the projectile at the muzzle
-			World->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-		}
-		int32 SocketIndex;
-		GetSkeletalMeshAsset()->FindSocketAndIndex(TEXT("Muzzle"), SocketIndex);
-		if (SocketIndex != NULL)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, GetSkeletalMeshAsset()->
-				GetSocketByIndex(SocketIndex)->GetSocketLocalTransform());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Cannot Find Socket"));
+			World->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), SpawnRotation, ActorSpawnParams);
 		}
 	}
-	
-	// Try and play the sound if specified
-	if (FireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation());
-	}
-	
 	// Try and play a firing animation if specified
 	if (FireAnimation != nullptr)
 	{
 		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance1P = Character->GetMesh1P()->GetAnimInstance();
-		UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+		UAnimInstance* AnimInstance = mesh->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
-		}
-		if (AnimInstance1P != nullptr)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			AnimInstance->Montage_Play(FireAnimation);
 		}
 	}
 }
@@ -90,8 +68,8 @@ void UTP_WeaponComponent::AttachWeapon(AFaceTheSunCharacter* TargetCharacter)
 	{
 		return;
 	}
-
 	// Attach the weapon to the First Person Character
+	/*
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -105,6 +83,7 @@ void UTP_WeaponComponent::AttachWeapon(AFaceTheSunCharacter* TargetCharacter)
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
 		}
 	}
+	*/
 	
 	// switch bHasRifle so the animation blueprint can switch to another animation set
 	Character->SetHasRifle(true);
@@ -118,7 +97,7 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		return;
 	}
-
+	/*
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -126,4 +105,5 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			Subsystem->RemoveMappingContext(FireMappingContext);
 		}
 	}
+	*/
 }

@@ -9,6 +9,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TP_WeaponComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,11 +48,17 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	Gun = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh"));
 	Gun->SetOwnerNoSee(true);
 	Gun->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("GripPoint")));
+	Gun->AttachWeapon(this);
 	Gun1P = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh1P"));
 	Gun1P->SetOnlyOwnerSee(true);
 	Gun1P->AttachToComponent(Mesh1P, AttachmentRules, FName(TEXT("GripPoint")));
+	Gun1P->AttachWeapon(this);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	SetHasRifle(true);
+
+	FireSound = CreateDefaultSubobject<UAudioComponent>(TEXT("Fire Sound"));
+	FireSound->bAutoActivate = false;
+	FireSound->SetupAttachment(RootComponent);
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -89,6 +98,8 @@ void AFaceTheSunCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Run);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopRun);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::StartFire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopFire);
 	}
 }
 
@@ -121,6 +132,7 @@ void AFaceTheSunCharacter::Look(const FInputActionValue& Value)
 
 void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
 {
+	bIsFire = false;
 	GetCharacterMovement()->MaxWalkSpeed = 1000.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 500.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 200.0f;
@@ -128,6 +140,7 @@ void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
 
 void AFaceTheSunCharacter::StopRun(const FInputActionValue& Value)
 {
+	bIsFire = true;
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 100.0f;
@@ -188,4 +201,29 @@ void AFaceTheSunCharacter::Tick(float DeltaTime)
 	// 앉기 개선을 위한 매초마다 위치 계산
 	float CrouchInterpTime = FMath::Min(1.f, CrouchSpeed * DeltaTime);
 	CrouchEyeOffset = (1.f, CrouchInterpTime) * CrouchEyeOffset;
+}
+
+void AFaceTheSunCharacter::Fire()
+{
+	// 추후 3인칭 함수는 RPC로 호출하도록 조정할것
+	if (bIsFire)
+	{
+		Gun->Fire(GetMesh());
+		Gun1P->Fire(GetMesh1P());
+		//라이프타임 없앨것
+		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, 1.25f, false);
+	}
+}
+
+void AFaceTheSunCharacter::StopFire()
+{
+	bIsFire = false;
+	FireSound->Stop();
+}
+
+void AFaceTheSunCharacter::StartFire()
+{
+	bIsFire = true;
+	FireSound = UGameplayStatics::SpawnSoundAttached(FireSoundCue,Gun1P);
+	Fire();
 }

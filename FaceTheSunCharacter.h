@@ -44,9 +44,9 @@ class AFaceTheSunCharacter : public ACharacter
 	/** 달리기 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* RunAction;
-
-
-
+	/*발사*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* FireAction;
 	
 public:
 	AFaceTheSunCharacter();
@@ -102,10 +102,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
 	class UTP_WeaponComponent* Gun1P;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
+	class USoundCue* FireSoundCue;
+
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
 	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
 	virtual void Tick(float DeltaTime) override;
-
+	void Fire();
+	void StopFire();
+	void StartFire();
+private:
+	// 연사를 구현하기 위한 용도
+	FTimerHandle CharacterTimer;
+	bool bIsFire = false;
+	class UAudioComponent* FireSound;
 };
 
