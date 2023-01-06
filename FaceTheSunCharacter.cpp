@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TP_WeaponComponent.h"
 #include "Components/AudioComponent.h"
-#include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -55,10 +54,6 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	Gun1P->AttachWeapon(this);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	SetHasRifle(true);
-
-	FireSound = CreateDefaultSubobject<UAudioComponent>(TEXT("Fire Sound"));
-	FireSound->bAutoActivate = false;
-	FireSound->SetupAttachment(RootComponent);
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -132,7 +127,7 @@ void AFaceTheSunCharacter::Look(const FInputActionValue& Value)
 
 void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
 {
-	bIsFire = false;
+	bIsRun = true;
 	GetCharacterMovement()->MaxWalkSpeed = 1000.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 500.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 200.0f;
@@ -140,7 +135,7 @@ void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
 
 void AFaceTheSunCharacter::StopRun(const FInputActionValue& Value)
 {
-	bIsFire = true;
+	bIsRun = false;
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 100.0f;
@@ -205,25 +200,23 @@ void AFaceTheSunCharacter::Tick(float DeltaTime)
 
 void AFaceTheSunCharacter::Fire()
 {
-	// 추후 3인칭 함수는 RPC로 호출하도록 조정할것
-	if (bIsFire)
+	// 추후 3인칭 함수는 RPC로 호출하도록 
+	if (bIsShot && !bIsRun)
 	{
 		Gun->Fire(GetMesh());
 		Gun1P->Fire(GetMesh1P());
-		//라이프타임 없앨것
-		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, 1.25f, false);
+		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, 0.75f, false);
 	}
 }
 
 void AFaceTheSunCharacter::StopFire()
 {
-	bIsFire = false;
-	FireSound->Stop();
+	bIsShot = false;
+	GetWorldTimerManager().ClearTimer(CharacterTimer);
 }
 
 void AFaceTheSunCharacter::StartFire()
 {
-	bIsFire = true;
-	FireSound = UGameplayStatics::SpawnSoundAttached(FireSoundCue,Gun1P);
+	bIsShot = true;
 	Fire();
 }

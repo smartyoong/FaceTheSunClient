@@ -3,7 +3,6 @@
 #include "FaceTheSunProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
-#include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 
@@ -25,8 +24,9 @@ AFaceTheSunProjectile::AFaceTheSunProjectile()
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->SetUpdatedComponent(CollisionComp);
+	ProjectileMovement->InitialSpeed = 5000.f;
+	ProjectileMovement->MaxSpeed = 5000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = false;
 
@@ -37,19 +37,19 @@ AFaceTheSunProjectile::AFaceTheSunProjectile()
 	ProjectileMesh->SetupAttachment(RootComponent);
 	ProjectileMesh->bCastDynamicShadow = false;
 	ProjectileMesh->CastShadow = false;
+	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AFaceTheSunProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if ((OtherActor != nullptr) && (OtherActor != this))
 	{
-		if (ParticleEffect)
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, Hit.Location);
 		// Only add impulse and destroy projectile if we hit a physics
 		if ((OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 		{
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 		}
+		UE_LOG(LogTemp,Warning,TEXT("%s"), *Hit.ToString());
 		Destroy();
 	}
 }

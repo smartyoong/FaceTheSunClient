@@ -24,40 +24,53 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 // fire의 스켈레탈이 각자 다르기때문에 2번 중첩으로 재생되는 효과가 존재해서 메시를 받아들이기로했다
 void UTP_WeaponComponent::Fire(USkeletalMeshComponent* mesh)
 {
-	if (Character == nullptr || Character->GetController() == nullptr)
+	if (AmmoCount == 0)
 	{
-		return;
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), EmptyAmmoSound, Character->GetActorLocation(), Character->GetActorRotation(), 0.3f);
 	}
-	if (ParticleEffect)
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, this->GetSocketTransform(TEXT("Muzzle")));
-	// Try and fire a projectile
-	if (ProjectileClass != nullptr)
+	else
 	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
+		if (Character == nullptr || Character->GetController() == nullptr)
 		{
-			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-	
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-	
-			// Spawn the projectile at the muzzle
-			World->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), SpawnRotation, ActorSpawnParams);
+			return;
 		}
-	}
-	// Try and play a firing animation if specified
-	if (FireAnimation != nullptr)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = mesh->GetAnimInstance();
-		if (AnimInstance != nullptr)
+		if (ParticleEffect)
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, this->GetSocketTransform(TEXT("Muzzle")));
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, Character->GetActorLocation(), Character->GetActorRotation(), 0.3f);
+		// Try and fire a projectile
+		// 직접 쏘는 사람의 총알만 생성 되도록
+		if (mesh != Character->GetMesh())
 		{
-			AnimInstance->Montage_Play(FireAnimation);
+			if (ProjectileClass != nullptr)
+			{
+				UWorld* const World = GetWorld();
+				if (World != nullptr)
+				{
+					APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+					const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+					const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+
+					//Set Spawn Collision Handling Override
+					FActorSpawnParameters ActorSpawnParams;
+					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+					// Spawn the projectile at the muzzle
+					World->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), SpawnRotation, ActorSpawnParams);
+				}
+			}
 		}
+		// Try and play a firing animation if specified
+		if (FireAnimation != nullptr)
+		{
+			// Get the animation object for the arms mesh
+			UAnimInstance* AnimInstance = mesh->GetAnimInstance();
+			if (AnimInstance != nullptr)
+			{
+				AnimInstance->Montage_Play(FireAnimation);
+			}
+		}
+		AmmoCount--;
 	}
 }
 

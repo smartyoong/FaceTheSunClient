@@ -102,9 +102,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
 	class UTP_WeaponComponent* Gun1P;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
-	class USoundCue* FireSoundCue;
-
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
 	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
@@ -115,7 +112,7 @@ public:
 private:
 	// 연사를 구현하기 위한 용도
 	FTimerHandle CharacterTimer;
-	bool bIsFire = false;
-	class UAudioComponent* FireSound;
+	bool bIsRun = false;
+	bool bIsShot = false;
 };
 
