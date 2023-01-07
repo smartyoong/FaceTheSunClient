@@ -49,7 +49,6 @@ void AFaceTheSunProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		{
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 		}
-		UE_LOG(LogTemp,Warning,TEXT("%s"), *Hit.ToString());
 		Destroy();
 	}
 }

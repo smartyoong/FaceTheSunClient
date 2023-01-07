@@ -13,6 +13,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
@@ -21,8 +22,8 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
 }
 
-// fire의 스켈레탈이 각자 다르기때문에 2번 중첩으로 재생되는 효과가 존재해서 메시를 받아들이기로했다
-void UTP_WeaponComponent::Fire(USkeletalMeshComponent* mesh)
+// fire의 스켈레탈이 각자 다르기때문에 2번 중첩으로 재생되는 효과가 존재해서 분리
+void UTP_WeaponComponent::MulticastFire_Implementation()
 {
 	if (AmmoCount == 0)
 	{
@@ -30,47 +31,66 @@ void UTP_WeaponComponent::Fire(USkeletalMeshComponent* mesh)
 	}
 	else
 	{
-		if (Character == nullptr || Character->GetController() == nullptr)
-		{
+		if (Character == nullptr)
 			return;
-		}
-		if (ParticleEffect)
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, this->GetSocketTransform(TEXT("Muzzle")));
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, Character->GetActorLocation(), Character->GetActorRotation(), 0.3f);
-		// Try and fire a projectile
-		// 직접 쏘는 사람의 총알만 생성 되도록
-		if (mesh != Character->GetMesh())
+		//만약 해당 캐릭터를 소유한사람 즉, 총발사자한테는 2개의 파티클 이펙트와 2개의 총알이 생성될 필요가 없음.
+		if (Character->GetLocalRole() == ENetRole::ROLE_AutonomousProxy)
 		{
-			if (ProjectileClass != nullptr)
+			if (ParticleEffect)
 			{
-				UWorld* const World = GetWorld();
-				if (World != nullptr)
+				UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
+				if (ProjectileClass != nullptr)
 				{
-					APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-					const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-					const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-
 					//Set Spawn Collision Handling Override
 					FActorSpawnParameters ActorSpawnParams;
 					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 					// Spawn the projectile at the muzzle
-					World->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), SpawnRotation, ActorSpawnParams);
+					GetWorld()->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), GetSocketRotation(TEXT("Muzzle")), ActorSpawnParams);
 				}
 			}
+			AmmoCount--;
 		}
-		// Try and play a firing animation if specified
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, Character->GetActorLocation(), Character->GetActorRotation(), 0.3f);
+	}
+	if (FireAnimation != nullptr)
+	{
+		UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
+		if (AnimInstance != nullptr)
+			AnimInstance->Montage_Play(FireAnimation);
+	}
+}
+
+void UTP_WeaponComponent::ServerFire_Implementation()
+{
+	MulticastFire();
+}
+
+void UTP_WeaponComponent::P1Fire()
+{
+	if (AmmoCount > 0)
+	{
+		if (Character == nullptr)
+			return;
+		if (ParticleEffect)
+			UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
+		// Try and fire a projectile
+		if (ProjectileClass != nullptr)
+		{
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			// Spawn the projectile at the muzzle
+			GetWorld()->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), GetSocketRotation(TEXT("Muzzle")), ActorSpawnParams);
+		}
 		if (FireAnimation != nullptr)
 		{
 			// Get the animation object for the arms mesh
-			UAnimInstance* AnimInstance = mesh->GetAnimInstance();
+			UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
 			if (AnimInstance != nullptr)
-			{
 				AnimInstance->Montage_Play(FireAnimation);
-			}
 		}
-		AmmoCount--;
 	}
 }
 

@@ -79,10 +79,16 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
-	void Run(const FInputActionValue& Value);
-	void StopRun(const FInputActionValue& Value);
-	void StartCrouch(const FInputActionValue& Value);
-	void StopCrouch(const FInputActionValue& Value);
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRun();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastStopRun();
+	UFUNCTION(Server, Unreliable)
+	void ServerRun();
+	UFUNCTION(Server, Unreliable)
+	void ServerStopRun();
+	void StartCrouch();
+	void StopCrouch();
 
 protected:
 	// APawn interface

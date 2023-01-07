@@ -26,6 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector MuzzleOffset;
 
+	//추후 리플리케이트 시킬예정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
 	int32 AmmoCount = 30;
 
@@ -34,7 +35,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
 	class USoundBase* FireSound;
-
 	/* MappingContext 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputMappingContext* FireMappingContext;
@@ -54,8 +54,11 @@ public:
 	void AttachWeapon(AFaceTheSunCharacter* TargetCharacter);
 
 	/** Make the weapon Fire a Projectile */
-	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void Fire(USkeletalMeshComponent* mesh);
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastFire();
+	UFUNCTION(Server, Unreliable)
+	void ServerFire();
+	void P1Fire();
 
 protected:
 	/** Ends gameplay for this component. */

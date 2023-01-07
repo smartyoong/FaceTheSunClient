@@ -11,6 +11,7 @@
 #include "TP_WeaponComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,6 +70,8 @@ void AFaceTheSunCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -91,8 +94,8 @@ void AFaceTheSunCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::StartCrouch);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopCrouch);
 
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Run);
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopRun);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::ServerRun);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::ServerStopRun);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::StartFire);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopFire);
 	}
@@ -125,28 +128,36 @@ void AFaceTheSunCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AFaceTheSunCharacter::Run(const FInputActionValue& Value)
+void AFaceTheSunCharacter::MulticastRun_Implementation()
 {
 	bIsRun = true;
-	GetCharacterMovement()->MaxWalkSpeed = 1000.0f;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 500.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 300.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 200.0f;
 }
 
-void AFaceTheSunCharacter::StopRun(const FInputActionValue& Value)
+void AFaceTheSunCharacter::MulticastStopRun_Implementation()
 {
 	bIsRun = false;
-	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 	GetCharacterMovement()->MaxSwimSpeed = 100.0f;
 }
+void AFaceTheSunCharacter::ServerRun_Implementation()
+{
+	MulticastRun();
+}
+void AFaceTheSunCharacter::ServerStopRun_Implementation()
+{
+	MulticastStopRun();
+}
 
-void AFaceTheSunCharacter::StartCrouch(const FInputActionValue& Value)
+void AFaceTheSunCharacter::StartCrouch()
 {
 	Crouch();
 }
 
-void AFaceTheSunCharacter::StopCrouch(const FInputActionValue& Value)
+void AFaceTheSunCharacter::StopCrouch()
 {
 	UnCrouch();
 }
@@ -179,7 +190,10 @@ void AFaceTheSunCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHe
 	{
 		return;
 	}
+	float StartBaseEyeHeight = BaseEyeHeight;
 	Super::OnEndCrouch(HalfHeightAdjust, ScaleHalfHeightAdjust);
+	CrouchEyeOffset.Z -= StartBaseEyeHeight + BaseEyeHeight - HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight), false);
 }
 void AFaceTheSunCharacter::CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult)
 {
@@ -196,15 +210,16 @@ void AFaceTheSunCharacter::Tick(float DeltaTime)
 	// 앉기 개선을 위한 매초마다 위치 계산
 	float CrouchInterpTime = FMath::Min(1.f, CrouchSpeed * DeltaTime);
 	CrouchEyeOffset = (1.f, CrouchInterpTime) * CrouchEyeOffset;
+
 }
 
 void AFaceTheSunCharacter::Fire()
 {
 	// 추후 3인칭 함수는 RPC로 호출하도록 
-	if (bIsShot && !bIsRun)
+	if (bIsShot)
 	{
-		Gun->Fire(GetMesh());
-		Gun1P->Fire(GetMesh1P());
+		Gun->ServerFire();
+		Gun1P->P1Fire(); // 로컬에서만 보여지는 액션은 RPC를 사용하지 않으므로 직접호출
 		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, 0.75f, false);
 	}
 }
