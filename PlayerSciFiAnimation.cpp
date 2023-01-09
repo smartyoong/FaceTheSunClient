@@ -18,7 +18,7 @@ void UPlayerSciFiAnimation::NativeUpdateAnimation(float DeltaSeconds)
 		{
 			speed = FVector::DotProduct(Character->GetVelocity(), Character->GetActorForwardVector());
 			bIsInAir = Character->GetCharacterMovement()->IsFalling();
-			bIsCrouch = Character->GetCharacterMovement()->IsCrouching();
+			//bIsCrouch = Character->GetCharacterMovement()->IsCrouching();
 			Direction = FVector::DotProduct(Character->GetActorRightVector(), Character->GetVelocity());
 			PlayerPitch = UKismetMathLibrary::NormalizedDeltaRotator(Character->GetActorRotation(), Character->GetBaseAimRotation()).Pitch;
 		}

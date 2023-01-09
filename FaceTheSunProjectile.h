@@ -36,5 +36,8 @@ public:
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	int32 Damage = 30;
 };
 

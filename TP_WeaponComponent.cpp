@@ -14,6 +14,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
@@ -23,75 +24,64 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 }
 
 // fire의 스켈레탈이 각자 다르기때문에 2번 중첩으로 재생되는 효과가 존재해서 분리
-void UTP_WeaponComponent::MulticastFire_Implementation()
+void UTP_WeaponComponent::TPFire()
 {
+	if (Character == nullptr)
+		return;
 	if (AmmoCount == 0)
 	{
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), EmptyAmmoSound, Character->GetActorLocation(), Character->GetActorRotation(), 0.3f);
 	}
 	else
 	{
-		if (Character == nullptr)
-			return;
-		//만약 해당 캐릭터를 소유한사람 즉, 총발사자한테는 2개의 파티클 이펙트와 2개의 총알이 생성될 필요가 없음.
-		if (Character->GetLocalRole() == ENetRole::ROLE_AutonomousProxy)
-		{
-			if (ParticleEffect)
-			{
-				UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
-				if (ProjectileClass != nullptr)
-				{
-					//Set Spawn Collision Handling Override
-					FActorSpawnParameters ActorSpawnParams;
-					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-					// Spawn the projectile at the muzzle
-					GetWorld()->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), GetSocketRotation(TEXT("Muzzle")), ActorSpawnParams);
-				}
-			}
-			AmmoCount--;
-		}
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, Character->GetActorLocation(), Character->GetActorRotation(), 0.3f);
-	}
-	if (FireAnimation != nullptr)
-	{
-		UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
-		if (AnimInstance != nullptr)
-			AnimInstance->Montage_Play(FireAnimation);
-	}
-}
+		if (ParticleEffect)
+		{
+			auto PE = UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
+			PE->SetIsReplicated(true);
+			PE->SetOwnerNoSee(true);
+		}
+		if (FireAnimation != nullptr)
+		{
+			Character->GetMesh()->GetAnimInstance()->Montage_Play(FireAnimation);
+		}
+		// 서버만 액터를 생성하도록 어차피 클라 입장에선 Simulated액터로 보여지기 때문에 상관없음 클라측에서 중복생성 방지
+		if (Character->GetLocalRole() == ENetRole::ROLE_Authority)
+		{
+			if (ProjectileClass != nullptr)
+			{
+				//Set Spawn Collision Handling Override
+				FActorSpawnParameters ActorSpawnParams;
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-void UTP_WeaponComponent::ServerFire_Implementation()
-{
-	MulticastFire();
+				// Spawn the projectile at the muzzle
+				GetWorld()->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), Character->GetControlRotation(), ActorSpawnParams);
+			}
+		}
+		AmmoCount--;
+	}
 }
 
 void UTP_WeaponComponent::P1Fire()
 {
-	if (AmmoCount > 0)
-	{
 		if (Character == nullptr)
 			return;
-		if (ParticleEffect)
-			UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
-		// Try and fire a projectile
-		if (ProjectileClass != nullptr)
+		if (AmmoCount > 0)
 		{
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-			// Spawn the projectile at the muzzle
-			GetWorld()->SpawnActor<AFaceTheSunProjectile>(ProjectileClass, this->GetSocketLocation(TEXT("Muzzle")), GetSocketRotation(TEXT("Muzzle")), ActorSpawnParams);
+			// 발사체는 멀티캐스트가 소환
+			if (ParticleEffect)
+			{
+				UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
+			}
+			if (FireAnimation != nullptr)
+			{
+				// Get the animation object for the arms mesh
+				UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
+				if (AnimInstance != nullptr)
+					AnimInstance->Montage_Play(FireAnimation);
+			}
+			AmmoCount--;
 		}
-		if (FireAnimation != nullptr)
-		{
-			// Get the animation object for the arms mesh
-			UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
-			if (AnimInstance != nullptr)
-				AnimInstance->Montage_Play(FireAnimation);
-		}
-	}
 }
 
 void UTP_WeaponComponent::AttachWeapon(AFaceTheSunCharacter* TargetCharacter)
@@ -121,7 +111,6 @@ void UTP_WeaponComponent::AttachWeapon(AFaceTheSunCharacter* TargetCharacter)
 	// switch bHasRifle so the animation blueprint can switch to another animation set
 	Character->SetHasRifle(true);
 
-	// Set up action bindings
 }
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -140,3 +129,13 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 	*/
 }
+
+/*
+void UTP_WeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UTP_WeaponComponent, AmmoCount);
+	DOREPLIFETIME(UTP_WeaponComponent, TotalAmmo);
+}
+*/
+

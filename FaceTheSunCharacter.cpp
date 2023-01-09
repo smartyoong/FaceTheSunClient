@@ -12,6 +12,7 @@
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerSciFiAnimation.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,7 +26,6 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-		
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
@@ -40,21 +40,26 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-	CrouchEyeOffset = FVector(0.f);
-	CrouchSpeed = 12.f;
 	GetMesh()->SetOwnerNoSee(true);
+	GetMesh()->CastShadow = false;
+	GetMesh()->bCastDynamicShadow = false;
 
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	Gun = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh"));
 	Gun->SetOwnerNoSee(true);
 	Gun->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("GripPoint")));
 	Gun->AttachWeapon(this);
+	Gun->SetNetAddressable();
+	Gun->SetIsReplicated(true);
 	Gun1P = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh1P"));
 	Gun1P->SetOnlyOwnerSee(true);
 	Gun1P->AttachToComponent(Mesh1P, AttachmentRules, FName(TEXT("GripPoint")));
 	Gun1P->AttachWeapon(this);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	SetHasRifle(true);
+
+	SmoothCrouchingCurveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineFront"));
+	SmoothCrouchInterpFunction.BindUFunction(this, FName("SmoothCrouchInterpReturn"));
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -72,6 +77,7 @@ void AFaceTheSunCharacter::BeginPlay()
 	}
 	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
+	SmoothCrouchTimelineSetting();
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -154,12 +160,14 @@ void AFaceTheSunCharacter::ServerStopRun_Implementation()
 
 void AFaceTheSunCharacter::StartCrouch()
 {
-	Crouch();
+	SmoothCrouchingCurveTimeline->Play();
+	ServerCrouch();
 }
 
 void AFaceTheSunCharacter::StopCrouch()
 {
-	UnCrouch();
+	SmoothCrouchingCurveTimeline->Reverse();
+	ServerStopCrouch();
 }
 
 void AFaceTheSunCharacter::SetHasRifle(bool bNewHasRifle)
@@ -172,45 +180,10 @@ bool AFaceTheSunCharacter::GetHasRifle()
 	return bHasRifle;
 }
 
-void AFaceTheSunCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust)
-{
-	/*기존의 앉기는 그냥 카메를 순간이동한거라면 이 앉기 동작은 선형적으로 내려오도록 개선 */
-	if (HalfHeightAdjust == 0.f)
-	{
-		return;
-	}
-	float StartBaseEyeHeight = BaseEyeHeight;
-	Super::OnStartCrouch(HalfHeightAdjust, ScaleHalfHeightAdjust);
-	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight + HalfHeightAdjust;
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight),false);
-}
-void AFaceTheSunCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust)
-{
-	if (HalfHeightAdjust == 0.f)
-	{
-		return;
-	}
-	float StartBaseEyeHeight = BaseEyeHeight;
-	Super::OnEndCrouch(HalfHeightAdjust, ScaleHalfHeightAdjust);
-	CrouchEyeOffset.Z -= StartBaseEyeHeight + BaseEyeHeight - HalfHeightAdjust;
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight), false);
-}
-void AFaceTheSunCharacter::CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult)
-{
-	if (FirstPersonCameraComponent)
-	{
-		FirstPersonCameraComponent->GetCameraView(DeltaTime, OutResult);
-		OutResult.Location += CrouchEyeOffset;
-	}
-}
 
 void AFaceTheSunCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	// 앉기 개선을 위한 매초마다 위치 계산
-	float CrouchInterpTime = FMath::Min(1.f, CrouchSpeed * DeltaTime);
-	CrouchEyeOffset = (1.f, CrouchInterpTime) * CrouchEyeOffset;
-
 }
 
 void AFaceTheSunCharacter::Fire()
@@ -218,9 +191,8 @@ void AFaceTheSunCharacter::Fire()
 	// 추후 3인칭 함수는 RPC로 호출하도록 
 	if (bIsShot)
 	{
-		Gun->ServerFire();
-		Gun1P->P1Fire(); // 로컬에서만 보여지는 액션은 RPC를 사용하지 않으므로 직접호출
-		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, 0.75f, false);
+		ServerFire();
+		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, Gun->GetFireSpeed(), false);
 	}
 }
 
@@ -234,4 +206,64 @@ void AFaceTheSunCharacter::StartFire()
 {
 	bIsShot = true;
 	Fire();
+}
+
+void AFaceTheSunCharacter::ServerFire_Implementation()
+{
+	MulticastFire();
+	ClientFire();
+}
+
+void AFaceTheSunCharacter::MulticastFire_Implementation()
+{
+	//만약 해당 캐릭터를 소유한사람 즉, 총발사자한테는 2개의 파티클 이펙트와 2개의 총알이 생성될 필요가 없음. 직접 조종하지 않는 사람들이 볼 화면
+	Gun->TPFire();
+}
+
+void AFaceTheSunCharacter::ClientFire_Implementation()
+{
+	//직접 조종하는 사람만 볼 화면
+	Gun1P->P1Fire();
+}
+
+void AFaceTheSunCharacter::SmoothCrouchInterpReturn(float Value)
+{
+	// 반으로 줄인다. 근데 Collision 뿐만아니라 카메라도 같이 움직이고 Collision은 위치 이동이 안되기 때문에 Mesh도 같이 이동해준다.
+	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(90.f, 45.f, Value));
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.0f, 3.f, (FMath::Lerp(60.0f, 30.0f, Value))));
+	GetMesh()->SetRelativeLocation(FVector(-17.f, -4.f, (FMath::Lerp(-92.f, -45.f, Value))));
+}
+
+void AFaceTheSunCharacter::SmoothCrouchTimelineSetting()
+{
+	if (SmoothCrouchingCurveFloat)
+	{
+		SmoothCrouchingCurveTimeline->AddInterpFloat(SmoothCrouchingCurveFloat, SmoothCrouchInterpFunction);
+		SmoothCrouchingCurveTimeline->SetLooping(false);
+	}
+}
+
+void AFaceTheSunCharacter::MulticastCrouch_Implementation()
+{
+	auto PlayerSciAnim = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
+	PlayerSciAnim->bIsCrouch = true;
+}
+void AFaceTheSunCharacter::ServerCrouch_Implementation()
+{
+	MulticastCrouch();
+}
+void AFaceTheSunCharacter::MulticastStopCrouch_Implementation()
+{
+	auto PlayerSciAnim = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
+	PlayerSciAnim->bIsCrouch = false;
+}
+void AFaceTheSunCharacter::ServerStopCrouch_Implementation()
+{
+	MulticastStopCrouch();
+}
+
+void AFaceTheSunCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AFaceTheSunCharacter, bIsShot);
 }

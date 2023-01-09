@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Components/TimeLineComponent.h"
 #include "FaceTheSunCharacter.generated.h"
-
+#define ROLE_TO_STRING(Value) FindObject<UEnum>(ANY_PACKAGE,TEXT("ENetRole"),true)->GetNameStringByIndex((int32)Value)
 class UInputComponent;
 class USkeletalMeshComponent;
 class USceneComponent;
@@ -101,24 +102,51 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") FVector CrouchEyeOffset;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch") float CrouchSpeed;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
 	class UTP_WeaponComponent* Gun;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
 	class UTP_WeaponComponent* Gun1P;
 
-	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
-	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaleHalfHeightAdjust) override;
-	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
+	int32 HP = 100;
+
 	virtual void Tick(float DeltaTime) override;
 	void Fire();
 	void StopFire();
 	void StartFire();
+	//RPC
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+	UFUNCTION(Client, Reliable)
+	void ClientFire();
+
+	//앉기
+	FOnTimelineFloat SmoothCrouchInterpFunction;
+	UFUNCTION()
+	void SmoothCrouchInterpReturn(float Value);
+	UPROPERTY()
+	UTimelineComponent* SmoothCrouchingCurveTimeline;
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* SmoothCrouchingCurveFloat;
+	void SmoothCrouchTimelineSetting();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastCrouch();
+	UFUNCTION(Server, Unreliable)
+	void ServerCrouch();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastStopCrouch();
+	UFUNCTION(Server, Unreliable)
+	void ServerStopCrouch();
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsShot = false;
+
 private:
 	// 연사를 구현하기 위한 용도
 	FTimerHandle CharacterTimer;
 	bool bIsRun = false;
-	bool bIsShot = false;
 };
 

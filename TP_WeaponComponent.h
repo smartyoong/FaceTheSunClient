@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TP_WeaponComponent.generated.h"
-
 class AFaceTheSunCharacter;
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -30,6 +29,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
 	int32 AmmoCount = 30;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	int32 TotalAmmo = 120;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
+	float FireSpeed = .75f;
+
+	float GetFireSpeed() { return FireSpeed; }
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
 	class USoundBase* EmptyAmmoSound;
 
@@ -53,11 +60,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void AttachWeapon(AFaceTheSunCharacter* TargetCharacter);
 
-	/** Make the weapon Fire a Projectile */
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastFire();
-	UFUNCTION(Server, Unreliable)
-	void ServerFire();
+	/*타인 시점*/
+	void TPFire();
+	//개인화면
 	void P1Fire();
 
 protected:
