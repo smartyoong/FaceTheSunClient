@@ -48,9 +48,19 @@ class AFaceTheSunCharacter : public ACharacter
 	/*발사*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
+
+	/*장전*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ReloadAction;
+
+	/*손전등*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* LightAction;
 	
 public:
 	AFaceTheSunCharacter();
+
+	void ToggleLight();
 
 protected:
 	virtual void BeginPlay();
@@ -73,6 +83,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasRifle();
 
+	void SetReloadingNow(bool Reload) { bIsReloadingNow = Reload; }
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -88,8 +99,21 @@ protected:
 	void ServerRun();
 	UFUNCTION(Server, Unreliable)
 	void ServerStopRun();
+
 	void StartCrouch();
 	void StopCrouch();
+	void Reloading();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastReloading();
+	UFUNCTION(Server, Reliable)
+	void ServerReloading();
+	UFUNCTION(Client, Reliable)
+	void ClientReloading();
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsReloadingNow = false;
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsLightOn = true;
 
 protected:
 	// APawn interface
@@ -106,6 +130,9 @@ public:
 	class UTP_WeaponComponent* Gun;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gun") 
 	class UTP_WeaponComponent* Gun1P;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Light")
+	class USpotLightComponent* FlashLight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
 	int32 HP = 100;
@@ -143,6 +170,11 @@ public:
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool bIsShot = false;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastLight();
+	UFUNCTION(Server, Unreliable)
+	void ServerLight();
 
 private:
 	// 연사를 구현하기 위한 용도

@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "PlayerSciFiAnimation.h"
+#include "Components/SpotLightComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,6 +32,7 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	FirstPersonCameraComponent->SetIsReplicated(true);
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
@@ -60,6 +62,11 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 
 	SmoothCrouchingCurveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineFront"));
 	SmoothCrouchInterpFunction.BindUFunction(this, FName("SmoothCrouchInterpReturn"));
+
+	FlashLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashLight"));
+	FlashLight->SetupAttachment(FirstPersonCameraComponent);
+	FlashLight->SetVisibility(true);
+	FlashLight->SetIsReplicated(true);
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -104,6 +111,8 @@ void AFaceTheSunCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::ServerStopRun);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::StartFire);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopFire);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Reloading);
+		EnhancedInputComponent->BindAction(LightAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::ToggleLight);
 	}
 }
 
@@ -170,6 +179,29 @@ void AFaceTheSunCharacter::StopCrouch()
 	ServerStopCrouch();
 }
 
+void AFaceTheSunCharacter::Reloading()
+{
+	if(!bIsReloadingNow)
+		ServerReloading();
+}
+
+void AFaceTheSunCharacter::MulticastReloading_Implementation()
+{
+	Gun->Reloading();
+}
+
+void AFaceTheSunCharacter::ServerReloading_Implementation()
+{
+	bIsReloadingNow = true;
+	MulticastReloading();
+	ClientReloading();
+}
+
+void AFaceTheSunCharacter::ClientReloading_Implementation()
+{
+	Gun1P->Reloading1P();
+}
+
 void AFaceTheSunCharacter::SetHasRifle(bool bNewHasRifle)
 {
 	bHasRifle = bNewHasRifle;
@@ -184,12 +216,16 @@ bool AFaceTheSunCharacter::GetHasRifle()
 void AFaceTheSunCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (HasAuthority())
+	{
+		FlashLight->SetWorldRotation(GetControlRotation());
+	}
 }
 
 void AFaceTheSunCharacter::Fire()
 {
 	// 추후 3인칭 함수는 RPC로 호출하도록 
-	if (bIsShot)
+	if (bIsShot && !bIsReloadingNow)
 	{
 		ServerFire();
 		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, Gun->GetFireSpeed(), false);
@@ -266,4 +302,21 @@ void AFaceTheSunCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFaceTheSunCharacter, bIsShot);
+	DOREPLIFETIME(AFaceTheSunCharacter, bIsReloadingNow);
+	DOREPLIFETIME(AFaceTheSunCharacter, bIsLightOn);
+}
+
+void AFaceTheSunCharacter::ToggleLight()
+{
+	ServerLight();
+}
+
+void AFaceTheSunCharacter::MulticastLight_Implementation()
+{
+	FlashLight->SetVisibility(bIsLightOn);
+}
+void AFaceTheSunCharacter::ServerLight_Implementation()
+{
+	bIsLightOn = !bIsLightOn;
+	MulticastLight();
 }

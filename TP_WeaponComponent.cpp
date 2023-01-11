@@ -21,6 +21,7 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
+	
 }
 
 // fire의 스켈레탈이 각자 다르기때문에 2번 중첩으로 재생되는 효과가 존재해서 분리
@@ -78,10 +79,58 @@ void UTP_WeaponComponent::P1Fire()
 				// Get the animation object for the arms mesh
 				UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
 				if (AnimInstance != nullptr)
-					AnimInstance->Montage_Play(FireAnimation);
+					Character->GetMesh1P()->GetAnimInstance()->Montage_Play(FireAnimation);
 			}
 			AmmoCount--;
 		}
+}
+
+void UTP_WeaponComponent::Reloading()
+{
+	if (TotalAmmo < 1)
+	{
+		return;
+	}
+	AmmoHouse = NewObject<UStaticMeshComponent>(Character,TEXT("ReloadHouse"));
+	AmmoHouse->SetStaticMesh(AmmoHouseMesh);
+	AmmoHouse->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ReloadPoint"));
+	AmmoHouse->RegisterComponent();
+	AmmoHouse->SetOwnerNoSee(true);
+	AmmoHouse->SetIsReplicated(true);
+	GetWorld()->GetTimerManager().SetTimer(WeaponTimer, this, &UTP_WeaponComponent::SetRelativeLocationAmmo, 0.1, false);
+	if (ReloadAnimation)
+	{
+		if (Character->GetMesh()->GetAnimInstance())
+			Character->GetMesh()->GetAnimInstance()->Montage_Play(ReloadAnimation);
+		else if (Character->GetMesh()->GetAnimInstance() == nullptr)
+			UE_LOG(LogTemp, Warning, TEXT("No Anim Instance"));
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("No Reload Animation"));
+}
+
+void UTP_WeaponComponent::Reloading1P()
+{
+	if (TotalAmmo < 1)
+	{
+		return;
+	}
+	AmmoHouse = NewObject<UStaticMeshComponent>(Character, TEXT("ReloadHouse"));
+	AmmoHouse->SetStaticMesh(AmmoHouseMesh);
+	AmmoHouse->AttachToComponent(Character->GetMesh1P(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ReloadPoint"));
+	AmmoHouse->RegisterComponent();
+	AmmoHouse->SetOnlyOwnerSee(true);
+	AmmoHouse->SetIsReplicated(true);
+	GetWorld()->GetTimerManager().SetTimer(WeaponTimer, this, &UTP_WeaponComponent::SetRelativeLocationAmmo, 0.1, false);
+	if (ReloadAnimation)
+	{
+		if (Character->GetMesh1P()->GetAnimInstance())
+			Character->GetMesh1P()->GetAnimInstance()->Montage_Play(ReloadAnimation);
+		else if (Character->GetMesh1P()->GetAnimInstance() == nullptr)
+			UE_LOG(LogTemp, Warning, TEXT("No Anim Instance"));
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("No Reload Animation"));
 }
 
 void UTP_WeaponComponent::AttachWeapon(AFaceTheSunCharacter* TargetCharacter)
@@ -91,24 +140,6 @@ void UTP_WeaponComponent::AttachWeapon(AFaceTheSunCharacter* TargetCharacter)
 	{
 		return;
 	}
-	// Attach the weapon to the First Person Character
-	/*
-	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
-			Subsystem->AddMappingContext(FireMappingContext, 1);
-		}
-		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
-		{
-			// Fire
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
-		}
-	}
-	*/
-	
-	// switch bHasRifle so the animation blueprint can switch to another animation set
 	Character->SetHasRifle(true);
 
 }
@@ -119,23 +150,51 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		return;
 	}
-	/*
-	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->RemoveMappingContext(FireMappingContext);
-		}
-	}
-	*/
 }
 
-/*
-void UTP_WeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UTP_WeaponComponent::EndReload()
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UTP_WeaponComponent, AmmoCount);
-	DOREPLIFETIME(UTP_WeaponComponent, TotalAmmo);
+	int32 AmmoOffset = 30 - AmmoCount;
+	int32 temp = TotalAmmo - AmmoOffset;
+	if (temp < 0)
+	{
+		temp = AmmoOffset - TotalAmmo;
+		AmmoCount += temp;
+		TotalAmmo = 0;
+	}
+	else
+	{
+		TotalAmmo -= AmmoOffset;
+		AmmoCount = 30;
+	}
+	AmmoHouse->UnregisterComponent();
+	AmmoHouse->DestroyComponent();
+	Character->SetReloadingNow(false);
+	Character->GetWorldTimerManager().ClearTimer(WeaponTimer);
 }
-*/
 
+void UTP_WeaponComponent::EndReload1P()
+{
+	int32 AmmoOffset = 30 - AmmoCount;
+	int32 temp = TotalAmmo - AmmoOffset;
+	if (temp < 0)
+	{
+		temp = AmmoOffset - TotalAmmo;
+		AmmoCount += temp;
+		TotalAmmo = 0;
+	}
+	else
+	{
+		TotalAmmo -= AmmoOffset;
+		AmmoCount = 30;
+	}
+	AmmoHouse->UnregisterComponent();
+	AmmoHouse->DestroyComponent();
+	Character->SetReloadingNow(false);
+	Character->GetWorldTimerManager().ClearTimer(WeaponTimer);
+}
+
+void UTP_WeaponComponent::SetRelativeLocationAmmo()
+{
+	AmmoHouse->SetRelativeLocation(Character->GetMesh()->GetSocketLocation(TEXT("ReloadPoint")));
+}

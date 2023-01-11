@@ -21,4 +21,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Jump") bool bIsCrouch = false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pitch") double PlayerPitch;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	UFUNCTION()
+	void AnimNotify_EndReload();
+	UFUNCTION()
+	void AnimNotify_EndReload1P();
 };

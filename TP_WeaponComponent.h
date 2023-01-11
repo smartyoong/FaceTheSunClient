@@ -21,6 +21,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UAnimMontage* ReloadAnimation;
+
 	/** Gun muzzle's offset from the characters location */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector MuzzleOffset;
@@ -37,11 +40,17 @@ public:
 
 	float GetFireSpeed() { return FireSpeed; }
 
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
 	class USoundBase* EmptyAmmoSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sound")
 	class USoundBase* FireSound;
+
+	UStaticMeshComponent* AmmoHouse;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo")
+	UStaticMesh* AmmoHouseMesh;
 	/* MappingContext 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputMappingContext* FireMappingContext;
@@ -64,6 +73,13 @@ public:
 	void TPFire();
 	//개인화면
 	void P1Fire();
+
+	void Reloading();
+	void Reloading1P();
+	void EndReload();
+	void EndReload1P();
+	void SetRelativeLocationAmmo();
+	FTimerHandle WeaponTimer;
 
 protected:
 	/** Ends gameplay for this component. */
