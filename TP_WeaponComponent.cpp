@@ -39,7 +39,6 @@ void UTP_WeaponComponent::TPFire()
 		if (ParticleEffect)
 		{
 			auto PE = UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));
-			PE->SetIsReplicated(true);
 			PE->SetOwnerNoSee(true);
 		}
 		if (FireAnimation != nullptr)

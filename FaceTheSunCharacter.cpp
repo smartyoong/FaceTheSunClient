@@ -67,6 +67,7 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	FlashLight->SetupAttachment(FirstPersonCameraComponent);
 	FlashLight->SetVisibility(true);
 	FlashLight->SetIsReplicated(true);
+	PlayerSciAnim = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
 }
 
 void AFaceTheSunCharacter::BeginPlay()
@@ -85,6 +86,7 @@ void AFaceTheSunCharacter::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 	SmoothCrouchTimelineSetting();
+	TeamId = FGenericTeamId(ID);
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -105,7 +107,6 @@ void AFaceTheSunCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Look);
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::StartCrouch);
-		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopCrouch);
 
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::ServerRun);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::ServerStopRun);
@@ -169,15 +170,19 @@ void AFaceTheSunCharacter::ServerStopRun_Implementation()
 
 void AFaceTheSunCharacter::StartCrouch()
 {
-	SmoothCrouchingCurveTimeline->Play();
-	ServerCrouch();
+	bCIsCrouch = !bCIsCrouch;
+	GetCharacterMovement()->bIgnoreClientMovementErrorChecksAndCorrection = true;
+	GetCharacterMovement()->bServerAcceptClientAuthoritativePosition = true;
+	if (!bCIsCrouch)
+	{
+		ServerStopCrouch();
+	}
+	else
+	{
+		ServerCrouch();
+	}
 }
 
-void AFaceTheSunCharacter::StopCrouch()
-{
-	SmoothCrouchingCurveTimeline->Reverse();
-	ServerStopCrouch();
-}
 
 void AFaceTheSunCharacter::Reloading()
 {
@@ -218,13 +223,17 @@ void AFaceTheSunCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (HasAuthority())
 	{
-		FlashLight->SetWorldRotation(GetControlRotation());
+		// we need replicate the spotlight rotation
+		if(FlashLight)
+			FlashLight->SetWorldRotation(GetControlRotation());
 	}
+	if (bCIsCrouch)
+		GetMesh()->SetRelativeLocation(FVector(-17.f, -4.f, -45.f));
 }
 
 void AFaceTheSunCharacter::Fire()
 {
-	// 추후 3인칭 함수는 RPC로 호출하도록 
+	// make automatic fire
 	if (bIsShot && !bIsReloadingNow)
 	{
 		ServerFire();
@@ -252,22 +261,22 @@ void AFaceTheSunCharacter::ServerFire_Implementation()
 
 void AFaceTheSunCharacter::MulticastFire_Implementation()
 {
-	//만약 해당 캐릭터를 소유한사람 즉, 총발사자한테는 2개의 파티클 이펙트와 2개의 총알이 생성될 필요가 없음. 직접 조종하지 않는 사람들이 볼 화면
+	//for another client fire
 	Gun->TPFire();
 }
 
 void AFaceTheSunCharacter::ClientFire_Implementation()
 {
-	//직접 조종하는 사람만 볼 화면
+	//for client fire
 	Gun1P->P1Fire();
 }
 
 void AFaceTheSunCharacter::SmoothCrouchInterpReturn(float Value)
 {
-	// 반으로 줄인다. 근데 Collision 뿐만아니라 카메라도 같이 움직이고 Collision은 위치 이동이 안되기 때문에 Mesh도 같이 이동해준다.
+	// smooth crouch
 	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(90.f, 45.f, Value));
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.0f, 3.f, (FMath::Lerp(60.0f, 30.0f, Value))));
-	GetMesh()->SetRelativeLocation(FVector(-17.f, -4.f, (FMath::Lerp(-92.f, -45.f, Value))));
+	GetMesh()->SetRelativeLocation(FVector(-17.f, -4.f, (FMath::Lerp(-90.f, -45.f, Value))));
 }
 
 void AFaceTheSunCharacter::SmoothCrouchTimelineSetting()
@@ -281,8 +290,10 @@ void AFaceTheSunCharacter::SmoothCrouchTimelineSetting()
 
 void AFaceTheSunCharacter::MulticastCrouch_Implementation()
 {
-	auto PlayerSciAnim = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
-	PlayerSciAnim->bIsCrouch = true;
+	auto MeshAnimInstance = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
+	check(MeshAnimInstance);
+	SmoothCrouchingCurveTimeline->Play();
+	MeshAnimInstance->bIsCrouch = true;
 }
 void AFaceTheSunCharacter::ServerCrouch_Implementation()
 {
@@ -290,8 +301,10 @@ void AFaceTheSunCharacter::ServerCrouch_Implementation()
 }
 void AFaceTheSunCharacter::MulticastStopCrouch_Implementation()
 {
-	auto PlayerSciAnim = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
-	PlayerSciAnim->bIsCrouch = false;
+	auto MeshAnimInstance = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
+	check(MeshAnimInstance);
+	SmoothCrouchingCurveTimeline->Reverse();
+	MeshAnimInstance->bIsCrouch = false;
 }
 void AFaceTheSunCharacter::ServerStopCrouch_Implementation()
 {
@@ -319,4 +332,28 @@ void AFaceTheSunCharacter::ServerLight_Implementation()
 {
 	bIsLightOn = !bIsLightOn;
 	MulticastLight();
+}
+
+float AFaceTheSunCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	HP -= Damage;
+	if (HP <= 0)
+		ServerOnDeath();
+	return Damage;
+}
+
+void AFaceTheSunCharacter::ServerOnDeath_Implementation()
+{
+	MultiOnDeath();
+}
+void AFaceTheSunCharacter::MultiOnDeath_Implementation()
+{
+	if(DeathSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), GetActorRotation(), 0.3f);
+	if (DeathAnimation)
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(DeathAnimation);
+		GetMesh1P()->GetAnimInstance()->Montage_Play(DeathAnimation);
+	}
 }

@@ -18,6 +18,7 @@ void URoomWidget::OnStartClicked()
 void URoomWidget::OnGoBackClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
+	Instance->IsHost = false;
 	std::string CharacterNameString = TCHAR_TO_UTF8(*Instance->GetCharacterName().ToString());
 	if (Instance->GetRoomInfo().HostName == CharacterNameString)
 	{

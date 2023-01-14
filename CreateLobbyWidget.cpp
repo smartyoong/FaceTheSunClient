@@ -49,5 +49,6 @@ void UCreateLobbyWidget::OnCreateClicked()
 	}
 	Instance->SetRoomInfo(info);
 	Instance->MultiPlayerNames.push_back(Instance->GetCharacterName());
+	Instance->IsHost = true;
 	RoomWidget->AddToViewport();
 }

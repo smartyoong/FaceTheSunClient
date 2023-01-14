@@ -10,7 +10,6 @@
 void UPlayerSciFiAnimation::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	/*¼Óµµ*/
 	auto Pawn = Cast<AFaceTheSunCharacter>(TryGetPawnOwner());
 	if (::IsValid(Pawn))
 	{
@@ -26,7 +25,7 @@ void UPlayerSciFiAnimation::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-//Ä¿½ºÅÒ ¾Ö´Ï¸ÞÀÌ¼Ç ³ëÆ¼ÆÄÀÌ
+//Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½
 void UPlayerSciFiAnimation::AnimNotify_EndReload()
 {
 	auto Pawn = Cast<AFaceTheSunCharacter>(TryGetPawnOwner());
@@ -51,4 +50,13 @@ void UPlayerSciFiAnimation::AnimNotify_EndReload1P()
 			Character->Gun1P->EndReload1P();
 		}
 	}
+}
+
+void UPlayerSciFiAnimation::AnimNotify_Die()
+{
+	UE_LOG(LogTemp, Log, TEXT("Die, after add code to respawn"));
+}
+void UPlayerSciFiAnimation::AnimNotify_Die1P()
+{
+	UE_LOG(LogTemp, Log, TEXT("Die1P, after add code to respawn"));
 }

@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Components/TimeLineComponent.h"
+#include "GenericTeamAgentInterface.h"
 #include "FaceTheSunCharacter.generated.h"
 #define ROLE_TO_STRING(Value) FindObject<UEnum>(ANY_PACKAGE,TEXT("ENetRole"),true)->GetNameStringByIndex((int32)Value)
 class UInputComponent;
@@ -16,7 +17,7 @@ class UAnimMontage;
 class USoundBase;
 
 UCLASS(config=Game)
-class AFaceTheSunCharacter : public ACharacter
+class AFaceTheSunCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -101,7 +102,6 @@ protected:
 	void ServerStopRun();
 
 	void StartCrouch();
-	void StopCrouch();
 	void Reloading();
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -175,10 +175,25 @@ public:
 	void MulticastLight();
 	UFUNCTION(Server, Unreliable)
 	void ServerLight();
+	 //팀 구별용
+	int32 ID = 1;
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+	bool bCIsCrouch = false;
 
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	UFUNCTION(Server, Reliable)
+	void ServerOnDeath();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiOnDeath();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
+	UAnimMontage* DeathAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
+	USoundBase* DeathSound;
 private:
 	// 연사를 구현하기 위한 용도
 	FTimerHandle CharacterTimer;
 	bool bIsRun = false;
+	FGenericTeamId TeamId;
+	class UPlayerSciFiAnimation* PlayerSciAnim;
 };
 

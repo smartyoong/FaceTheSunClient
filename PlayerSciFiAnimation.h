@@ -25,4 +25,8 @@ public:
 	void AnimNotify_EndReload();
 	UFUNCTION()
 	void AnimNotify_EndReload1P();
+	UFUNCTION()
+	void AnimNotify_Die();
+	UFUNCTION()
+	void AnimNotify_Die1P();
 };

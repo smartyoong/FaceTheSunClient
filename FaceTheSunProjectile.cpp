@@ -5,6 +5,8 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
+#include "FaceTheSunCharacter.h"
+#include "CommonEnemy.h"
 
 AFaceTheSunProjectile::AFaceTheSunProjectile() 
 {
@@ -44,10 +46,16 @@ void AFaceTheSunProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 	if ((OtherActor != nullptr) && (OtherActor != this))
 	{
 		// Only add impulse and destroy projectile if we hit a physics
-		if ((OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+		auto EnemyActor = Cast<ACommonEnemy>(OtherActor);
+		if (EnemyActor)
 		{
-			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+			if ((OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+			{
+				OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+			}
+			UGameplayStatics::ApplyDamage(EnemyActor, Damage, GetWorld()->GetFirstPlayerController(), this, UDamageType::StaticClass());
 		}
+
 		Destroy();
 	}
 }

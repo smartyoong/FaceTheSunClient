@@ -31,4 +31,5 @@ public:
 	OnlineSocket& GetSock() { return NetWorkSocket; }
 	std::vector<FText> MultiPlayerNames;
 	Concurrency::concurrent_queue<PackToBuffer> OrderQue;
+	bool IsHost = false;
 };
