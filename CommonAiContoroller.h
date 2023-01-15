@@ -19,6 +19,7 @@ public:
 	ACommonAiContoroller();
 	virtual void OnPossess(APawn* InPawn) override;
 	UBlackboardComponent* GetBlackboard();
+	UBehaviorTreeComponent* GetBehaviorTree() { return BehaviorTreeComp; }
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UAIPerceptionComponent* AIPerceptionComp;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }

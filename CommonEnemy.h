@@ -39,12 +39,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	int32 ID = 0;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
-	void Death();
+	UFUNCTION(NetMulticast, Blueprintcallable, Reliable)
+	void MultiDeath();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	UAnimMontage* DeathAnimation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	double AttackRange = 45;
 	double GetAttackRange() { return AttackRange; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	UAnimMontage* AttackAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit")
+	UAnimMontage* HitAnimation;
+	UFUNCTION(NetMulticast,Blueprintcallable, Reliable)
+	void MultiAttack();
+	bool IsDead = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	USoundBase* BeforeAttackSound;
+	UFUNCTION(NetMulticast, Blueprintcallable, Unreliable)
+	void MultiSetFocus();
+	UFUNCTION(NetMulticast, Blueprintcallable, Unreliable)
+	void MultiHit();
 protected:
 	FGenericTeamId TeamId;
 

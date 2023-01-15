@@ -18,8 +18,8 @@ ACommonAiContoroller::ACommonAiContoroller()
 	checkf(BehaviorTreeComp, TEXT("BehaviorTree is null"));
 	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("AI_Sight"));
-	SightConfig->SightRadius = 2000.f;
-	SightConfig->LoseSightRadius = 2500.f;
+	SightConfig->SightRadius = 1000.f;
+	SightConfig->LoseSightRadius = 2000.f;
 	SightConfig->PeripheralVisionAngleDegrees = 90.f;
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	AIPerceptionComp->ConfigureSense(*SightConfig);
@@ -51,12 +51,12 @@ void ACommonAiContoroller::OnDectectedEnemyBySight(AActor* Actor, FAIStimulus st
 		SetFocus(stimulus.WasSuccessfullySensed() ? FC : nullptr);
 		if (stimulus.WasSuccessfullySensed())
 		{
+			if (Enemy)
+				Enemy->MultiSetFocus();
 			checkf(GetBlackboard(), TEXT("Balckboard is null"));
 			GetBlackboard()->SetValueAsObject(TEXT("TargetToFollow"), FC);
 			GetBlackboard()->SetValueAsVector(TEXT("MoveToLocation"), FC->GetActorLocation());
 		}
-		else
-			UE_LOG(LogTemp, Log, TEXT("Fail to Percept"));
 	}
 }
 

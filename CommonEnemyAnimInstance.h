@@ -18,5 +18,8 @@ public:
 	void AnimNotify_Attack();
 	UFUNCTION()
 	void AnimNotify_Die();
-	
+	UFUNCTION()
+	void AnimNotify_AttackEnd();
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Speed") float speed = 0;
 };

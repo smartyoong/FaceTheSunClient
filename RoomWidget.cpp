@@ -13,6 +13,16 @@
 void URoomWidget::OnStartClicked()
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
+	if (Instance->IsHost)
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), FName("Chapter01"), true, ((FString)(L"Listen")));
+	}
+	else
+	{
+		PackToBuffer pb(sizeof(Instance->GetRoomInfo().HostName) + sizeof(PacketID::GameStart));
+		pb << PacketID::GameStart << Instance->GetRoomInfo().HostName;
+		Instance->GetSock().Send(&pb);
+	}
 }
 
 void URoomWidget::OnGoBackClicked()
@@ -118,6 +128,9 @@ void URoomWidget::NativeTick(const FGeometry& Geometry, float DeltaSeconds)
 		case PacketID::DeleteRoomMember:
 			MemberOut(pb);
 			break;
+		case PacketID::GameStart:
+			MemberGameStart(pb);
+			break;
 		default:
 			break;
 		}
@@ -166,4 +179,11 @@ void URoomWidget::MemberOut(PackToBuffer& pb)
 		NewTB->SetText(Instance->MultiPlayerNames[i]);
 		VB_User->AddChild(NewTB);
 	}
+}
+
+void URoomWidget::MemberGameStart(PackToBuffer& pb)
+{
+	std::string HostIP;
+	pb >> &HostIP;
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*(FString(HostIP.c_str()))));
 }

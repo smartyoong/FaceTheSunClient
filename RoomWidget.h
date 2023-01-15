@@ -34,6 +34,7 @@ public:
 	void AddChat(PackToBuffer& pb);
 	void HostOut();
 	void MemberOut(PackToBuffer& pb);
+	void MemberGameStart(PackToBuffer& pb);
 	UFUNCTION(BlueprintCallable) void OnStartClicked();
 	UFUNCTION(BlueprintCallable) void OnSendChatClicked();
 	UFUNCTION(BlueprintCallable) void OnGoBackClicked();

@@ -340,6 +340,7 @@ float AFaceTheSunCharacter::TakeDamage(float Damage, struct FDamageEvent const& 
 	HP -= Damage;
 	if (HP <= 0)
 		ServerOnDeath();
+	UE_LOG(LogTemp, Log, TEXT("%d"),HP);
 	return Damage;
 }
 
