@@ -16,6 +16,7 @@ void URoomWidget::OnStartClicked()
 	if (Instance->IsHost)
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), FName("Chapter01"), true, ((FString)(L"Listen")));
+		HostOut();
 	}
 	else
 	{
@@ -38,7 +39,7 @@ void URoomWidget::OnGoBackClicked()
 	}
 	else
 	{
-		PackToBuffer pb(sizeof(PacketID::DeleteRoomHost) + sizeof(Instance->GetRoomInfo().HostName)+ sizeof(CharacterNameString));
+		PackToBuffer pb(sizeof(PacketID::DeleteRoomMember) + sizeof(Instance->GetRoomInfo().HostName)+ sizeof(CharacterNameString));
 		pb << PacketID::DeleteRoomMember << Instance->GetRoomInfo().HostName << CharacterNameString;
 		Instance->GetSock().Send(&pb);
 	}
@@ -53,6 +54,7 @@ void URoomWidget::OnSendChatClicked()
 	std::string Character = TCHAR_TO_UTF8(*Instance->GetCharacterName().ToString());
 	pb << PacketID::SendChat << Instance->GetRoomInfo().HostName << Character <<ChatString;
 	Instance->GetSock().Send(&pb);
+	ET_Chat->SetText(FText::FromString(FString("")));
 }
 
 void URoomWidget::NativeOnInitialized()
@@ -84,8 +86,10 @@ void URoomWidget::NativeConstruct()
 	NewTB->Font.Size = 200;
 	NewTB->SetText(HostName);
 	VB_User->AddChild(NewTB);
-	for (int i = 1; i < Instance->MultiPlayerNames.size(); ++i)
+	for (int i = 0; i < Instance->MultiPlayerNames.size(); ++i)
 	{
+		if (HostName.ToString()== Instance->MultiPlayerNames[i].ToString())
+			continue;
 		UTextBlock* NNewTB = NewObject<UTextBlock>(VB_User);
 		NNewTB->Font.Size = 200;
 		NNewTB->SetText(Instance->MultiPlayerNames[i]);
@@ -185,5 +189,9 @@ void URoomWidget::MemberGameStart(PackToBuffer& pb)
 {
 	std::string HostIP;
 	pb >> &HostIP;
+	auto pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	pc->bShowMouseCursor = false;
+	pc->SetInputMode(FInputModeGameOnly());
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*(FString(HostIP.c_str()))));
+	HostOut();
 }

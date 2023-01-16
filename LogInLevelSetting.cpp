@@ -22,5 +22,6 @@ void ALogInLevelSetting::BeginPlay()
 		logIn->AddToViewport();
 		auto pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		pc->bShowMouseCursor = true;
+		pc->SetInputMode(FInputModeUIOnly());
 	}
 }

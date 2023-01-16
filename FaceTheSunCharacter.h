@@ -159,13 +159,13 @@ public:
 	UCurveFloat* SmoothCrouchingCurveFloat;
 	void SmoothCrouchTimelineSetting();
 
-	UFUNCTION(NetMulticast, Unreliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void MulticastCrouch();
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerCrouch();
-	UFUNCTION(NetMulticast, Unreliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void MulticastStopCrouch();
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerStopCrouch();
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
@@ -179,7 +179,7 @@ public:
 	int32 ID = 1;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 	bool bCIsCrouch = false;
-
+	// 데미지
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION(Server, Reliable)
 	void ServerOnDeath();
@@ -188,7 +188,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
 	UAnimMontage* DeathAnimation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
+	UAnimMontage* HitAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
 	USoundBase* DeathSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
+	USoundBase* HitSound;
+	UFUNCTION(Server, Reliable)
+	void ServerOnHit();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiOnHit();
+
 private:
 	// 연사를 구현하기 위한 용도
 	FTimerHandle CharacterTimer;

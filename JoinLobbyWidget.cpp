@@ -115,11 +115,11 @@ void UJoinLobbyWidget::OnJoinClicked()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("방 입장이 불가능합니다."));
+			UE_LOG(LogTemp, Log, TEXT("Can not Join."));
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("방 입장중 통신 오류 발생"));
+		UE_LOG(LogTemp, Log, TEXT("In Loading Network Error %d"),IsRecvRoom);
 	}
 }

@@ -3,10 +3,10 @@
 
 #include "CommonAiContoroller.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BehaviorTree/BehaviorTree.h"
 #include "CommonEnemy.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyAllTypes.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "FaceTheSunCharacter.h"
 
@@ -94,4 +94,9 @@ void ACommonAiContoroller::BeginPlay()
 		AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &ACommonAiContoroller::OnDectectedEnemyBySight);
 		TeamId = FGenericTeamId(Enemy->ID);
 	}
+}
+void ACommonAiContoroller::StopBTTree()
+{
+	UnPossess();
+	Destroy();
 }

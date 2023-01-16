@@ -48,7 +48,8 @@ void UCommonEnemyAnimInstance::AnimNotify_Die()
 		{
 			Enemy->IsDead = true;
 			auto EC = Cast<ACommonAiContoroller>(Enemy->GetController());
-			EC->GetBehaviorTree()->StopTree(EBTStopMode::Forced);
+			if(EC)
+				EC->StopBTTree();
 		}
 	}
 }

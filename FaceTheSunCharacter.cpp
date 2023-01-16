@@ -340,6 +340,8 @@ float AFaceTheSunCharacter::TakeDamage(float Damage, struct FDamageEvent const& 
 	HP -= Damage;
 	if (HP <= 0)
 		ServerOnDeath();
+	else
+		ServerOnHit();
 	UE_LOG(LogTemp, Log, TEXT("%d"),HP);
 	return Damage;
 }
@@ -356,5 +358,20 @@ void AFaceTheSunCharacter::MultiOnDeath_Implementation()
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(DeathAnimation);
 		GetMesh1P()->GetAnimInstance()->Montage_Play(DeathAnimation);
+	}
+}
+
+void AFaceTheSunCharacter::ServerOnHit_Implementation()
+{
+	MultiOnHit();
+}
+void AFaceTheSunCharacter::MultiOnHit_Implementation()
+{
+	if (HitSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, GetActorLocation(), GetActorRotation(), 0.3f);
+	if (HitAnimation)
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(HitAnimation);
+		GetMesh1P()->GetAnimInstance()->Montage_Play(HitAnimation);
 	}
 }
