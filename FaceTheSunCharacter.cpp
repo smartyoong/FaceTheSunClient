@@ -14,6 +14,11 @@
 #include "Net/UnrealNetwork.h"
 #include "PlayerSciFiAnimation.h"
 #include "Components/SpotLightComponent.h"
+#include "FaceTheSunGameState.h"
+#include "FaceTheSunInstance.h"
+#include "GameFramework/PlayerController.h"
+#include "FaceTheSunPlayerController.h"
+#include "FaceTheSunPlayerState.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +92,11 @@ void AFaceTheSunCharacter::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 	SmoothCrouchTimelineSetting();
 	TeamId = FGenericTeamId(ID);
+	MyGameState = Cast<AFaceTheSunGameState>(GetWorld()->GetGameState());
+	if (MyGameState)
+	{
+		MyGameState->AddPlayerToList(this);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -114,6 +124,7 @@ void AFaceTheSunCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AFaceTheSunCharacter::StopFire);
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::Reloading);
 		EnhancedInputComponent->BindAction(LightAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::ToggleLight);
+		EnhancedInputComponent->BindAction(NextCameraAction, ETriggerEvent::Triggered, this, &AFaceTheSunCharacter::SpectateNextPlayer);
 	}
 }
 
@@ -217,15 +228,35 @@ bool AFaceTheSunCharacter::GetHasRifle()
 	return bHasRifle;
 }
 
+void AFaceTheSunCharacter::CallWinFunc_Implementation()
+{
+	auto PC = Cast<AFaceTheSunPlayerController>(GetController());
+	if (PC)
+	{
+		PC->GoToWinMenu();
+	}
+}
+void AFaceTheSunCharacter::CallDefeatFunc_Implementation()
+{
+	auto PC = Cast<AFaceTheSunPlayerController>(GetController());
+	if (PC)
+		PC->GoToDefeatMenu();
+}
+
 
 void AFaceTheSunCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (HasAuthority())
 	{
+		if (!IsDead)
+		{
+			if (FlashLight)
+				FlashLight->SetWorldRotation(GetControlRotation());
+			if (FirstPersonCameraComponent)
+				FirstPersonCameraComponent->SetWorldRotation(GetControlRotation());
+		}
 		// we need replicate the spotlight rotation
-		if(FlashLight)
-			FlashLight->SetWorldRotation(GetControlRotation());
 	}
 	if (bCIsCrouch)
 		GetMesh()->SetRelativeLocation(FVector(-17.f, -4.f, -45.f));
@@ -234,7 +265,7 @@ void AFaceTheSunCharacter::Tick(float DeltaTime)
 void AFaceTheSunCharacter::Fire()
 {
 	// make automatic fire
-	if (bIsShot && !bIsReloadingNow)
+	if (bIsShot && !bIsReloadingNow && !IsDead)
 	{
 		ServerFire();
 		GetWorld()->GetTimerManager().SetTimer(CharacterTimer, this, &AFaceTheSunCharacter::Fire, Gun->GetFireSpeed(), false);
@@ -317,11 +348,27 @@ void AFaceTheSunCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(AFaceTheSunCharacter, bIsShot);
 	DOREPLIFETIME(AFaceTheSunCharacter, bIsReloadingNow);
 	DOREPLIFETIME(AFaceTheSunCharacter, bIsLightOn);
+	DOREPLIFETIME(AFaceTheSunCharacter, IsDead);
+	DOREPLIFETIME(AFaceTheSunCharacter, HP);
 }
 
 void AFaceTheSunCharacter::ToggleLight()
 {
 	ServerLight();
+}
+
+void AFaceTheSunCharacter::SpectateNextPlayer()
+{
+	UE_LOG(LogTemp, Warning, TEXT("NextPlayer"));
+	if (IsDead)
+	{
+		PlayerCameraIndex++;
+		auto CurrGameState = Cast<AFaceTheSunGameState>(GetWorld()->GetGameState());
+		if (CurrGameState)
+		{
+			UGameplayStatics::GetPlayerController(GetWorld(), 0)->SetViewTargetWithBlend(CurrGameState->GetPlayerList()[PlayerCameraIndex % CurrGameState->GetPlayerList().Num()]);
+		}
+	}
 }
 
 void AFaceTheSunCharacter::MulticastLight_Implementation()
@@ -339,10 +386,27 @@ float AFaceTheSunCharacter::TakeDamage(float Damage, struct FDamageEvent const& 
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 	HP -= Damage;
 	if (HP <= 0)
+	{
+		HP = 0;
+		GetCharacterMovement()->SetMovementMode(MOVE_None);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCharacterMovement()->DisableMovement();
+		IsDead = true;
+		bUseControllerRotationYaw = false;
+		bUseControllerRotationPitch = false;
+		bUseControllerRotationRoll = false;
+		FlashLight->SetActive(false);
+		auto PS = Cast<AFaceTheSunPlayerState>(GetPlayerState());
+		if (PS)
+		{
+			PS->IsDead = true;
+		}
 		ServerOnDeath();
+	}
 	else
+	{
 		ServerOnHit();
-	UE_LOG(LogTemp, Log, TEXT("%d"),HP);
+	}
 	return Damage;
 }
 
@@ -354,16 +418,19 @@ void AFaceTheSunCharacter::MultiOnDeath_Implementation()
 {
 	if(DeathSound)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), GetActorRotation(), 0.3f);
-	if (DeathAnimation)
-	{
-		GetMesh()->GetAnimInstance()->Montage_Play(DeathAnimation);
-		GetMesh1P()->GetAnimInstance()->Montage_Play(DeathAnimation);
-	}
+	auto PAI = Cast<UPlayerSciFiAnimation>(GetMesh()->GetAnimInstance());
+	if (PAI)
+		PAI->bIsDeath = true;
+	PAI = Cast<UPlayerSciFiAnimation>(GetMesh1P()->GetAnimInstance());
+	if (PAI)
+		PAI->bIsDeath = true;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(-300, -3.f, 90.f));
+	FirstPersonCameraComponent->SetRelativeRotation(FQuat(0.f, -20.f, 0.f, 1.f));
 }
 
 void AFaceTheSunCharacter::ServerOnHit_Implementation()
 {
-	MultiOnHit();
+		MultiOnHit();
 }
 void AFaceTheSunCharacter::MultiOnHit_Implementation()
 {
@@ -372,6 +439,5 @@ void AFaceTheSunCharacter::MultiOnHit_Implementation()
 	if (HitAnimation)
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(HitAnimation);
-		GetMesh1P()->GetAnimInstance()->Montage_Play(HitAnimation);
 	}
 }

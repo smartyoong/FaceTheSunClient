@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "CommonEnemyAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ACommonEnemy::ACommonEnemy()
@@ -49,7 +50,9 @@ float ACommonEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 	HP -= Damage;
 	if (HP <= 0)
+	{
 		MultiDeath();
+	}
 	else
 		MultiHit();
 	return Damage;
@@ -105,4 +108,10 @@ void ACommonEnemy::MultiHit_Implementation()
 		else
 			UE_LOG(LogTemp, Log, TEXT("Fail to cast Enemy Anim Instance"));
 	}
+}
+
+void ACommonEnemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACommonEnemy, HP);
 }

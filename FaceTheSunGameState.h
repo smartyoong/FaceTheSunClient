@@ -13,5 +13,10 @@ UCLASS()
 class FACETHESUN_API AFaceTheSunGameState : public AGameState
 {
 	GENERATED_BODY()
-	
+private:
+		TArray<class AFaceTheSunCharacter*> CharacterList;
+public:
+	void AddPlayerToList(class AFaceTheSunCharacter* ch);
+	TArray<class AFaceTheSunCharacter*> GetPlayerList();
+	bool bBossKilled = false;
 };

@@ -24,6 +24,7 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 	virtual void BeginPlay() override;
 	void StopBTTree();
+	bool bFindEnemy = false;
 protected:
 	UPROPERTY(BlueprintReadWrite, Category = "Behavior")
 	class UBlackboardComponent* BlackboardComp;

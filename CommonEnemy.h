@@ -30,8 +30,8 @@ public:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	int32 AttackDamage = 2;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	int32 AttackDamage = 10;
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	int32 HP = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	class UBehaviorTree* BehaviorTree;
@@ -44,7 +44,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
 	UAnimMontage* DeathAnimation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-	double AttackRange = 45;
+	double AttackRange = 90;
 	double GetAttackRange() { return AttackRange; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	UAnimMontage* AttackAnimation;

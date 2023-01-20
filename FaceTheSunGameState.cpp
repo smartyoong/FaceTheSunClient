@@ -2,4 +2,13 @@
 
 
 #include "FaceTheSunGameState.h"
+#include "FaceTheSunCharacter.h"
 
+void AFaceTheSunGameState::AddPlayerToList(class AFaceTheSunCharacter* ch)
+{
+	CharacterList.Add(ch);
+}
+TArray<class AFaceTheSunCharacter*> AFaceTheSunGameState::GetPlayerList()
+{
+	return CharacterList;
+}

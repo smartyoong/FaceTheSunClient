@@ -15,6 +15,9 @@ void URoomWidget::OnStartClicked()
 	UGameplayStatics::PlaySound2D(GetWorld(), ClickSound);
 	if (Instance->IsHost)
 	{
+		auto pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		pc->bShowMouseCursor = false;
+		pc->SetInputMode(FInputModeGameOnly());
 		UGameplayStatics::OpenLevel(GetWorld(), FName("Chapter01"), true, ((FString)(L"Listen")));
 		HostOut();
 	}

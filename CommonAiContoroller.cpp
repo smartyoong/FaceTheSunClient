@@ -18,8 +18,8 @@ ACommonAiContoroller::ACommonAiContoroller()
 	checkf(BehaviorTreeComp, TEXT("BehaviorTree is null"));
 	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("AI_Sight"));
-	SightConfig->SightRadius = 1000.f;
-	SightConfig->LoseSightRadius = 2000.f;
+	SightConfig->SightRadius = 500.f;
+	SightConfig->LoseSightRadius = 550.f;
 	SightConfig->PeripheralVisionAngleDegrees = 90.f;
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	AIPerceptionComp->ConfigureSense(*SightConfig);
@@ -46,16 +46,27 @@ UBlackboardComponent* ACommonAiContoroller::GetBlackboard()
 void ACommonAiContoroller::OnDectectedEnemyBySight(AActor* Actor, FAIStimulus stimulus)
 {
 	AFaceTheSunCharacter* FC = Cast<AFaceTheSunCharacter>(Actor);
-	if (FC)
+	if (FC && !FC->IsDead)
 	{
-		SetFocus(stimulus.WasSuccessfullySensed() ? FC : nullptr);
-		if (stimulus.WasSuccessfullySensed())
+		// somebody out
+		if (Cast<AFaceTheSunCharacter>(GetBlackboard()->GetValueAsObject("TargetToFollow")))
 		{
-			if (Enemy)
-				Enemy->MultiSetFocus();
-			checkf(GetBlackboard(), TEXT("Balckboard is null"));
-			GetBlackboard()->SetValueAsObject(TEXT("TargetToFollow"), FC);
-			GetBlackboard()->SetValueAsVector(TEXT("MoveToLocation"), FC->GetActorLocation());
+			GetBlackboard()->SetValueAsObject(TEXT("TargetToFollow"), nullptr);
+		}
+		else //somebody in
+		{
+			SetFocus(stimulus.WasSuccessfullySensed() ? FC : nullptr);
+			if (stimulus.WasSuccessfullySensed())
+			{
+				bFindEnemy = true;
+				if (Enemy)
+					Enemy->MultiSetFocus();
+				checkf(GetBlackboard(), TEXT("Balckboard is null"));
+				GetBlackboard()->SetValueAsObject(TEXT("TargetToFollow"), FC);
+				GetBlackboard()->SetValueAsVector(TEXT("MoveToLocation"), FC->GetActorLocation());
+			}
+			else
+				bFindEnemy = false;
 		}
 	}
 }

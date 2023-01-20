@@ -57,15 +57,21 @@ class AFaceTheSunCharacter : public ACharacter, public IGenericTeamAgentInterfac
 	/*손전등*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LightAction;
+
+	/*죽었을때 다른 사람 화면 보기*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* NextCameraAction;
 	
 public:
 	AFaceTheSunCharacter();
 
 	void ToggleLight();
-
+	void SpectateNextPlayer();
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool IsDead = false;
 protected:
 	virtual void BeginPlay();
-
+	int32 PlayerCameraIndex = 0;
 public:
 		
 	/** Look Input Action */
@@ -85,6 +91,10 @@ public:
 	bool GetHasRifle();
 
 	void SetReloadingNow(bool Reload) { bIsReloadingNow = Reload; }
+	UFUNCTION(NetMulticast, Reliable)
+	void CallWinFunc();
+	UFUNCTION(NetMulticast, Reliable)
+	void CallDefeatFunc();
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -134,7 +144,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Light")
 	class USpotLightComponent* FlashLight;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite, Category = "HP")
 	int32 HP = 100;
 
 	virtual void Tick(float DeltaTime) override;
@@ -186,8 +196,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiOnDeath();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
-	UAnimMontage* DeathAnimation;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
 	UAnimMontage* HitAnimation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Death)
 	USoundBase* DeathSound;
@@ -197,12 +205,12 @@ public:
 	void ServerOnHit();
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiOnHit();
-
 private:
 	// 연사를 구현하기 위한 용도
 	FTimerHandle CharacterTimer;
 	bool bIsRun = false;
 	FGenericTeamId TeamId;
 	class UPlayerSciFiAnimation* PlayerSciAnim;
+	class AFaceTheSunGameState* MyGameState;
 };
 

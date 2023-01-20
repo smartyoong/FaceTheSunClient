@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "CommonAiContoroller.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 void UCommonEnemyAnimInstance::AnimNotify_Attack()
 {
@@ -25,7 +26,14 @@ void UCommonEnemyAnimInstance::AnimNotify_Attack()
 				AFaceTheSunCharacter* Character = Cast<AFaceTheSunCharacter>(Hit.GetActor());
 				if (Character)
 				{
-					// attack range = 45
+					if (Character->IsDead)
+					{
+						auto EC = Cast<ACommonAiContoroller>(Enemy->GetController());
+						if (EC)
+						{
+							EC->GetBlackboard()->SetValueAsBool(TEXT("CanAttack"), false);
+						}
+					}
 					if (Hit.Distance < Enemy->GetAttackRange())
 					{
 						UGameplayStatics::ApplyDamage(Character, Enemy->AttackDamage, Enemy->GetController(), Enemy, nullptr);
