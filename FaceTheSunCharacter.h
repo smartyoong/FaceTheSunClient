@@ -205,6 +205,20 @@ public:
 	void ServerOnHit();
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiOnHit();
+	UFUNCTION(NetMultiCast, Unreliable)
+	void MultiHeal();
+	UFUNCTION(Server, Unreliable)
+	void ServerHeal();
+	UFUNCTION(NetMultiCast, Unreliable)
+	void MultiAmmo();
+	UFUNCTION(Server, Unreliable)
+	void ServerAmmo();
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* RechargeAmmoSound;
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Particle) class UParticleSystem* AmmoParticleEffect;
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* HealSound;
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Particle) class UParticleSystem* HealParticleEffect;
 private:
 	// 연사를 구현하기 위한 용도
 	FTimerHandle CharacterTimer;
@@ -212,5 +226,6 @@ private:
 	FGenericTeamId TeamId;
 	class UPlayerSciFiAnimation* PlayerSciAnim;
 	class AFaceTheSunGameState* MyGameState;
+	class UParticleSystemComponent* pe;
 };
 

@@ -15,9 +15,5 @@ EBTNodeResult::Type UBTTaskCommonAttack::ExecuteTask(UBehaviorTreeComponent& Own
 		return EBTNodeResult::Failed;
 	}
 	Enemy->MultiAttack();
-	FTimerHandle WaitHandle;
-	float WaitTime = 5.f;
-	GetWorld()->GetTimerManager().SetTimer(WaitHandle, FTimerDelegate::CreateLambda([&]()
-		{GetWorld()->GetTimerManager().ClearTimer(WaitHandle); }), WaitTime, false); //반복도 여기서 추가 변수를 선언해 설정가능
 	return EBTNodeResult::Succeeded;
 }

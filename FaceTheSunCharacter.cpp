@@ -19,6 +19,7 @@
 #include "GameFramework/PlayerController.h"
 #include "FaceTheSunPlayerController.h"
 #include "FaceTheSunPlayerState.h"
+#include "Engine/Classes/Particles/ParticleSystemComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -440,4 +441,31 @@ void AFaceTheSunCharacter::MultiOnHit_Implementation()
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(HitAnimation);
 	}
+}
+
+void AFaceTheSunCharacter::MultiHeal_Implementation()
+{
+	if (HealSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HealSound, GetActorLocation(), GetActorRotation(), 0.3f);
+	if (HealParticleEffect)
+	{
+		pe = UGameplayStatics::SpawnEmitterAttached(HealParticleEffect, GetMesh());
+	}
+}
+void AFaceTheSunCharacter::ServerHeal_Implementation()
+{
+	MultiHeal();
+}
+void AFaceTheSunCharacter::MultiAmmo_Implementation()
+{
+	if (RechargeAmmoSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), RechargeAmmoSound, GetActorLocation(), GetActorRotation(), 0.3f);
+	if (AmmoParticleEffect)
+	{
+		pe = UGameplayStatics::SpawnEmitterAttached(AmmoParticleEffect, GetMesh());
+	}
+}
+void AFaceTheSunCharacter::ServerAmmo_Implementation()
+{
+	MultiAmmo();
 }
