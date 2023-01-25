@@ -20,7 +20,8 @@
 #include "FaceTheSunPlayerController.h"
 #include "FaceTheSunPlayerState.h"
 #include "Engine/Classes/Particles/ParticleSystemComponent.h"
-
+#include "BossKrakenHP.h"
+#include "BossKraken.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFaceTheSunCharacter
@@ -261,6 +262,20 @@ void AFaceTheSunCharacter::Tick(float DeltaTime)
 	}
 	if (bCIsCrouch)
 		GetMesh()->SetRelativeLocation(FVector(-17.f, -4.f, -45.f));
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	if(GetWorld()->LineTraceSingleByChannel(Hit,GetActorLocation(),GetActorLocation()+GetActorForwardVector()*2000.f,ECollisionChannel::ECC_Visibility,Params))
+	{
+		ABossKraken* Boss = Cast<ABossKraken>(Hit.GetActor());
+		if(Boss)
+		{
+			auto PC = Cast<AFaceTheSunPlayerController>(GetController());
+			if (PC)
+				PC->ShowBossHP();
+		}
+	}	
 }
 
 void AFaceTheSunCharacter::Fire()
@@ -468,4 +483,15 @@ void AFaceTheSunCharacter::MultiAmmo_Implementation()
 void AFaceTheSunCharacter::ServerAmmo_Implementation()
 {
 	MultiAmmo();
+}
+
+void AFaceTheSunCharacter::FellOutOfWorld(const UDamageType& DmgType)
+{
+	auto PS = Cast<AFaceTheSunPlayerState>(GetPlayerState());
+		if (PS)
+		{
+			PS->IsDead = true;
+		}
+	MultiOnDeath();
+	Super::FellOutOfWorld(DmgType);
 }

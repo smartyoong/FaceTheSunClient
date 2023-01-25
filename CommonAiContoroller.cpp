@@ -32,7 +32,7 @@ void ACommonAiContoroller::OnPossess(APawn* InPawn)
 	Enemy = Cast<ACommonEnemy>(InPawn);
 	if (Enemy)
 	{
-		// ÇØ´ç Ä³¸¯ÅÍÀÇ AI·Î ÄÁÆ®·ÑÀ» ÃÊ±âÈ­
+		// ï¿½Ø´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ AIï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 		if (!BlackboardComp->InitializeBlackboard(*(Enemy->BehaviorTree->BlackboardAsset)))
 			UE_LOG(LogTemp, Log, TEXT("Fail To InitializeBalckbaord"));
 		BehaviorTreeComp->StartTree(*(Enemy->BehaviorTree));
@@ -51,7 +51,7 @@ void ACommonAiContoroller::OnDectectedEnemyBySight(AActor* Actor, FAIStimulus st
 		// somebody out
 		if (Cast<AFaceTheSunCharacter>(GetBlackboard()->GetValueAsObject("TargetToFollow")))
 		{
-			GetBlackboard()->SetValueAsObject(TEXT("TargetToFollow"), nullptr);
+			//GetBlackboard()->SetValueAsObject(TEXT("TargetToFollow"), nullptr);
 		}
 		else //somebody in
 		{

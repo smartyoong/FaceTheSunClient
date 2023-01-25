@@ -8,6 +8,7 @@
 #include "CommonEnemyAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "CommonAiContoroller.h"
 
 // Sets default values
 ACommonEnemy::ACommonEnemy()
@@ -31,7 +32,7 @@ void ACommonEnemy::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (IsDead)
 	{
-		//Á×¾úÀ»°æ¿ì µî¼Óµµ ¿îµ¿ °ø½ÄÀ¸·Î ³»·Á°¡°Ô ¸¸µç´Ù ±×·¯¸é ZDeath¿¡ ÀÇÇØ¼­ »ç¶óÁú ¿¹Á¤
+		//ì£½ìœ¼ë©´ ë°‘ìœ¼ë¡œ ì­‰ ë‚´ë ¤ê°€ê²Œí•´ì„œ ìë™ìœ¼ë¡œ ZDeathë¡œ ì•Œì•„ì„œ ì£½ìŒ
 		FVector NowLoc = GetActorLocation();
 		FVector VeloTime = FVector::DownVector * 50.f * DeltaTime;
 		SetActorLocation(NowLoc + VeloTime);
@@ -51,7 +52,13 @@ float ACommonEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 	HP -= Damage;
 	if (HP <= 0)
 	{
+		auto PE =Cast<UCommonEnemyAnimInstance>(GetMesh()->GetAnimInstance());
+		if (PE)
+		{
+			PE->StopAllMontages(0.f);
+		}
 		MultiDeath();
+		return Damage;
 	}
 	else
 		MultiHit();
@@ -60,6 +67,11 @@ float ACommonEnemy::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 
 void ACommonEnemy::MultiDeath_Implementation()
 {
+	auto EC = Cast<ABossKarakenAiContoroller>(GetController());
+	if (EC)
+	{
+		EC->StopBTTree();
+	}
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -67,7 +79,10 @@ void ACommonEnemy::MultiDeath_Implementation()
 	{
 		auto PE =Cast<UCommonEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 		if (PE)
+		{
+			PE->StopAllMontages(0.f);
 			PE->Montage_Play(DeathAnimation);
+		}
 		else
 			UE_LOG(LogTemp, Log, TEXT("Fail to cast Enemy Anim Instance"));
 	}

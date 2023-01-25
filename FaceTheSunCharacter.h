@@ -40,25 +40,25 @@ class AFaceTheSunCharacter : public ACharacter, public IGenericTeamAgentInterfac
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
-	/** ¾É±â */
+	/** ï¿½É±ï¿½ */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* CrouchAction;
-	/** ´Þ¸®±â */
+	/** ï¿½Þ¸ï¿½ï¿½ï¿½ */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* RunAction;
-	/*¹ß»ç*/
+	/*ï¿½ß»ï¿½*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
 
-	/*ÀåÀü*/
+	/*ï¿½ï¿½ï¿½ï¿½*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ReloadAction;
 
-	/*¼ÕÀüµî*/
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LightAction;
 
-	/*Á×¾úÀ»¶§ ´Ù¸¥ »ç¶÷ È­¸é º¸±â*/
+	/*ï¿½×¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* NextCameraAction;
 	
@@ -145,7 +145,7 @@ public:
 	class USpotLightComponent* FlashLight;
 
 	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite, Category = "HP")
-	int32 HP = 100;
+	float HP = 100.f;
 
 	virtual void Tick(float DeltaTime) override;
 	void Fire();
@@ -159,7 +159,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientFire();
 
-	//¾É±â
+	//ï¿½É±ï¿½
 	FOnTimelineFloat SmoothCrouchInterpFunction;
 	UFUNCTION()
 	void SmoothCrouchInterpReturn(float Value);
@@ -185,11 +185,11 @@ public:
 	void MulticastLight();
 	UFUNCTION(Server, Unreliable)
 	void ServerLight();
-	 //ÆÀ ±¸º°¿ë
+	 //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	int32 ID = 1;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 	bool bCIsCrouch = false;
-	// µ¥¹ÌÁö
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION(Server, Reliable)
 	void ServerOnDeath();
@@ -219,8 +219,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	USoundBase* HealSound;
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Particle) class UParticleSystem* HealParticleEffect;
+	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 private:
-	// ¿¬»ç¸¦ ±¸ÇöÇÏ±â À§ÇÑ ¿ëµµ
+	// ï¿½ï¿½ï¿½ç¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëµµ
 	FTimerHandle CharacterTimer;
 	bool bIsRun = false;
 	FGenericTeamId TeamId;

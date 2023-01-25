@@ -24,7 +24,7 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 	
 }
 
-// fireÀÇ ½ºÄÌ·¹Å»ÀÌ °¢ÀÚ ´Ù¸£±â¶§¹®¿¡ 2¹ø ÁßÃ¸À¸·Î Àç»ýµÇ´Â È¿°ú°¡ Á¸ÀçÇØ¼­ ºÐ¸®
+// fireì„œë²„ì¸¡ì—ì„œ ì´ì•Œì„ ìƒì„±í•˜ë„ë¡í•œë‹¤
 void UTP_WeaponComponent::TPFire()
 {
 	if (Character == nullptr)
@@ -45,7 +45,7 @@ void UTP_WeaponComponent::TPFire()
 		{
 			Character->GetMesh()->GetAnimInstance()->Montage_Play(FireAnimation);
 		}
-		// ¼­¹ö¸¸ ¾×ÅÍ¸¦ »ý¼ºÇÏµµ·Ï ¾îÂ÷ÇÇ Å¬¶ó ÀÔÀå¿¡¼± Simulated¾×ÅÍ·Î º¸¿©Áö±â ¶§¹®¿¡ »ó°ü¾øÀ½ Å¬¶óÃø¿¡¼­ Áßº¹»ý¼º ¹æÁö
+		// ì„œë²„ì—ì„œë§Œ ì´ì•Œì´ ìƒì„±ë˜ë„ë¡ í•œë‹¤, ê·¸ëž˜ì„œ ì´ì•Œì´ 2ë²ˆìƒì„±ë˜ì§€ ì•Šë„ë¡í•œë‹¤.
 		if (Character->GetLocalRole() == ENetRole::ROLE_Authority)
 		{
 			if (ProjectileClass != nullptr)
@@ -68,7 +68,7 @@ void UTP_WeaponComponent::P1Fire()
 			return;
 		if (AmmoCount > 0)
 		{
-			// ¹ß»çÃ¼´Â ¸ÖÆ¼Ä³½ºÆ®°¡ ¼ÒÈ¯
+			// ï¿½ß»ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½Æ¼Ä³ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½È¯
 			if (ParticleEffect)
 			{
 				UGameplayStatics::SpawnEmitterAttached(ParticleEffect, this, TEXT("Muzzle"));

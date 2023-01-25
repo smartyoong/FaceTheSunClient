@@ -43,25 +43,28 @@ void AMainGameMode::HandleMatchHasEnded()
 
 bool AMainGameMode::ReadyToEndMatch_Implementation()
 {
+	bool IsLose = false;
+	bool IsWin = false;
 	auto PlayerStateArray = MainGameState->PlayerArray;
-	if (PlayerStateArray.Num()) // 1¸í ÀÌ»ó Á¸ÀçÇÑ´Ù¸é.
+	if (PlayerStateArray.Num()) // 1ëª…ì´ë¼ë„ ìˆëŠ”ê°€?
 	{
+		// ë‹¤ ì£½ì–´ì•¼ë§Œ ë¦¬í„´ ë§Œì•½ 1ëª…ì´ë¼ë„ ì•ˆì£½ì—ˆë‹¤ë©´ falseë¡œ ë³€í•¨
+		IsLose = true;
 		for (int32 i = 0; i < PlayerStateArray.Num(); ++i)
 		{
 			auto PS = Cast<AFaceTheSunPlayerState>(PlayerStateArray[i]);
 			if (PS)
 			{
 				if (!PS->IsDead)
-					return false;
+					IsLose = false;
 			}
 		}
-		// ¸¸¾à ÀüºÎ Á×¾ú´Ù¸é
-		return true;
 	}
-	else if (MainGameState->bBossKilled)
-		return true;
-	else
-		return false;
+	if (MainGameState->bBossKilled)
+	{
+		IsWin =  true;
+	}
+	return IsLose || IsWin;
 }
 
 void AMainGameMode::BeginPlay()

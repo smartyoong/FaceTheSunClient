@@ -16,8 +16,11 @@ class FACETHESUN_API AFaceTheSunPlayerController : public APlayerController
 public:
 	void GoToWinMenu();
 	void GoToDefeatMenu();
+	void ShowBossHP();
 	UPROPERTY(EditDefaultsOnly) TSubclassOf<class UDefeatUserWidget>UI_Defeat;
 	UPROPERTY(EditDefaultsOnly) TSubclassOf<class UVictoryUserWidget>UI_Victory;
 	UPROPERTY() class UDefeatUserWidget* DefeatView;
 	UPROPERTY() class UVictoryUserWidget* VictoryView;
+	UPROPERTY(EditDefaultsOnly) TSubclassOf<class UBossKrakenHP>UI_BossHP;
+	UPROPERTY() class UBossKrakenHP* BossHPView;
 };
