@@ -86,8 +86,9 @@ void UTP_WeaponComponent::P1Fire()
 
 void UTP_WeaponComponent::Reloading()
 {
-	if (TotalAmmo < 1)
+	if (TotalAmmo <= 0)
 	{
+		Character->SetReloadingNow(false);
 		return;
 	}
 	AmmoHouse = NewObject<UStaticMeshComponent>(Character,TEXT("ReloadHouse"));
@@ -110,8 +111,9 @@ void UTP_WeaponComponent::Reloading()
 
 void UTP_WeaponComponent::Reloading1P()
 {
-	if (TotalAmmo < 1)
+	if (TotalAmmo <= 0)
 	{
+		Character->SetReloadingNow(false);
 		return;
 	}
 	AmmoHouse = NewObject<UStaticMeshComponent>(Character, TEXT("ReloadHouse"));
@@ -158,7 +160,7 @@ void UTP_WeaponComponent::EndReload()
 	if (temp < 0)
 	{
 		temp = AmmoOffset - TotalAmmo;
-		AmmoCount += temp;
+		AmmoCount += (30-temp);
 		TotalAmmo = 0;
 	}
 	else
@@ -179,7 +181,7 @@ void UTP_WeaponComponent::EndReload1P()
 	if (temp < 0)
 	{
 		temp = AmmoOffset - TotalAmmo;
-		AmmoCount += temp;
+		AmmoCount += (30-temp);
 		TotalAmmo = 0;
 	}
 	else

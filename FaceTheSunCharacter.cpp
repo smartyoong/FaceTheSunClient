@@ -479,6 +479,8 @@ void AFaceTheSunCharacter::MultiAmmo_Implementation()
 	{
 		pe = UGameplayStatics::SpawnEmitterAttached(AmmoParticleEffect, GetMesh());
 	}
+	Gun->TotalAmmo += RechargeAmmo;
+	Gun1P->TotalAmmo += RechargeAmmo;
 }
 void AFaceTheSunCharacter::ServerAmmo_Implementation()
 {

@@ -52,6 +52,7 @@ public:
 	UAnimMontage* HitAnimation;
 	UFUNCTION(NetMulticast,Blueprintcallable, Reliable)
 	void MultiAttack();
+	UPROPERTY(BlueprintReadWrite)
 	bool IsDead = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	USoundBase* BeforeAttackSound;

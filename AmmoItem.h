@@ -20,8 +20,6 @@ public:
 	class UStaticMeshComponent* MeshComp;
 	UPROPERTY(EditDefaultsOnly)
 	class URotatingMovementComponent* RotatingComp;
-	UPROPERTY(EditDefaultsOnly)
-	int32 RechargeAmmo = 120;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

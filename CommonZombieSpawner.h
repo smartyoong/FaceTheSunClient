@@ -20,7 +20,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	UFUNCTION(BlueprintCallable)
 	void StartSpawn();
+	UFUNCTION(BlueprintCallable)
 	void StopSpawn();
 	FTimerHandle DelayHandle;
 	UPROPERTY(EditDefaultsOnly)

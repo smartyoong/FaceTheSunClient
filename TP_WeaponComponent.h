@@ -28,7 +28,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector MuzzleOffset;
 
-	//ÃßÈÄ ¸®ÇÃ¸®ÄÉÀÌÆ® ½ÃÅ³¿¹Á¤
+	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ammo")
 	int32 AmmoCount = 30;
 
@@ -62,9 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void AttachWeapon(AFaceTheSunCharacter* TargetCharacter);
 
-	/*Å¸ÀÎ ½ÃÁ¡*/
+	/*Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½*/
 	void TPFire();
-	//°³ÀÎÈ­¸é
+	//ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½
 	void P1Fire();
 
 	void Reloading();

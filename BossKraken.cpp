@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
+#include "BossKrakenAnimInstance.h"
 
 ABossKraken::ABossKraken()
 {
@@ -14,11 +15,6 @@ void ABossKraken::BeginPlay()
 {
     Super::BeginPlay();
     StartHP = HP;
-    if(InitStartSound)
-    {
-        CurrentPlaySound->SetSound(InitStartSound);
-        MultiPlayBGMSound();
-    }
 }
 
 void ABossKraken::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -95,5 +91,17 @@ void ABossKraken::MultiProjectile_Implementation()
 	{
 		PE->StopAllMontages(0.f);
         PE->Montage_Play(HomingAnim);
+    }
+}
+
+void ABossKraken::StartBossGame()
+{
+    SetActorLocation(FVector(-92410.0f,-95010.f,600.f));
+    if(ScreamBossSound)
+        UGameplayStatics::PlaySound2D(GetWorld(),ScreamBossSound);
+    if(InitStartSound)
+    {
+         CurrentPlaySound->SetSound(InitStartSound);
+        MultiPlayBGMSound();
     }
 }

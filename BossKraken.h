@@ -47,4 +47,8 @@ public:
 	UAnimMontage* SmashAnim;
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* HomingAnim;
+	UFUNCTION(BlueprintCallable)
+	void StartBossGame();
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* ScreamBossSound;
 };

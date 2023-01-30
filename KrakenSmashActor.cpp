@@ -7,6 +7,7 @@
 #include "FaceTheSunCharacter.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "KrakenGoToAirSkill.h"
 
 // Sets default values
 AKrakenSmashActor::AKrakenSmashActor()

@@ -124,7 +124,8 @@ protected:
 	bool bIsReloadingNow = false;
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool bIsLightOn = true;
-
+	UPROPERTY(EditDefaultsOnly)
+	int32 RechargeAmmo = 120;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;

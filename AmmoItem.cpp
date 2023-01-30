@@ -33,8 +33,6 @@ void AAmmoItem::BeginPlay()
 void AAmmoItem::AmmoUp(AFaceTheSunCharacter* ch)
 {
 	ch->ServerAmmo();
-	ch->Gun->TotalAmmo += RechargeAmmo;
-	ch->Gun1P->TotalAmmo += RechargeAmmo;
 	Destroy();
 }
 
