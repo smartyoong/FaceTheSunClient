@@ -17,9 +17,9 @@ AKrakenSmashActor::AKrakenSmashActor()
 	SmashCollision = CreateDefaultSubobject<UKrakenGoToAirSkill>(TEXT("Collision"));
 	RootComponent = SmashCollision;
 	SmashSound = CreateDefaultSubobject<UAudioComponent>(TEXT("SmashSound"));
-	SmashSound->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepWorldTransform);
+	SmashSound->SetupAttachment(RootComponent);
     SmashEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("SmashEffect"));
-	SmashEffect->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepWorldTransform);
+	SmashEffect->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned

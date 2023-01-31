@@ -18,7 +18,7 @@ AAmmoItem::AAmmoItem()
 	PickComp = CreateDefaultSubobject<UTP_PickUpComponent>(TEXT("CollisionPickComp"));
 	RootComponent = PickComp;
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	MeshComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+	MeshComp->SetupAttachment(RootComponent);
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	RotatingComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotateComp"));
 }

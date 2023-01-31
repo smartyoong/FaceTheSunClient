@@ -7,6 +7,5 @@
 ASkeletonEnemy::ASkeletonEnemy()
 {
     BowMesh = CreateDefaultSubobject<UBowMeshComponent>(TEXT("Bow"));
-    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-    BowMesh->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("SKT_Bow")));
+    BowMesh->SetupAttachment(GetMesh(), FName(TEXT("SKT_Bow")));
 }

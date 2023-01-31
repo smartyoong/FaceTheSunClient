@@ -56,13 +56,13 @@ AFaceTheSunCharacter::AFaceTheSunCharacter()
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	Gun = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh"));
 	Gun->SetOwnerNoSee(true);
-	Gun->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("GripPoint")));
+	Gun->SetupAttachment(GetMesh(),FName(TEXT("GripPoint")));
 	Gun->AttachWeapon(this);
 	Gun->SetNetAddressable();
 	Gun->SetIsReplicated(true);
 	Gun1P = CreateDefaultSubobject<UTP_WeaponComponent>(TEXT("GunMesh1P"));
 	Gun1P->SetOnlyOwnerSee(true);
-	Gun1P->AttachToComponent(Mesh1P, AttachmentRules, FName(TEXT("GripPoint")));
+	Gun1P->SetupAttachment(Mesh1P, FName(TEXT("GripPoint")));
 	Gun1P->AttachWeapon(this);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	SetHasRifle(true);
